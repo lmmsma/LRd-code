@@ -1,3 +1,5 @@
+3
+
 %LMM: perform pacedown protocol on LRD model
 clear variables;
 
@@ -16,10 +18,8 @@ else
 end
 
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
-%bcls = [1000 900];
-%bcls = [1000:-50:200 190:-10:70 69:-1:50]; %full pacedown; cycle lengths in ms
-%bcls = [1000:-50:300 290:-10:70 69:-1:50]; %revised full pacedown (more points leading up to 200ms)
-bcls = [400:-50:300 290:-10:70]; %revised shortened pacedown
+%bcls = [1000 90];
+bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
 %bcls = [50:-1:40]; %cycle lengths in ms
 
 % Load initial condition, if there happens to be a preferred one for the 
@@ -34,6 +34,17 @@ if bcls(1) == 1000
     % Load the unperturbed fixed point
     eval(['load ' unpertfilename ' ' systemselect])
     yinit = eval(systemselect);
+elseif bcls(1) == 400
+    % Filenames and label settings based on fixed point type:
+    if strcmp(systemselect, 'solem12')
+        unpertfilename = 'b400fsolem12_fwde_shift0_newpulse';
+    elseif strcmp(systemselect,'kmonovsolem12')
+        unpertfilename = 'initial_state_400ms';
+    end
+    % Load the unperturbed fixed point
+    eval(['load ' unpertfilename ' ' 'yin'])
+    yinit = eval('yin');
+
 elseif bcls(1) == 900
     if data.stimflag
         eval(['load ' folder 'pacedownKstim1000_900_pace30000ms_samp0p5ms/lrddata_1cell_b900 Y'])
