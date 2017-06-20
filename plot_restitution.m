@@ -8,6 +8,7 @@ clear variables;
 plottsflag = 0; % if nonzero, produce a timeseries plot for each BCL
 
 %folder = ['lrddata/pacedownKstim1000_50_pace30000ms_samp0p5ms/'];
+%folder = ['Stored_Runs/Default-400_70/'];
 folder = ['lrddata/'];
 
 % Load settings recorded from pacedown simulation run

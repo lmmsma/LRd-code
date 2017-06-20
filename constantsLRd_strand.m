@@ -89,8 +89,11 @@ data.gako=0.75;       % Activity coefficient of K
 
 data.gcat = 0.05;
 
-
-
+% %%%%%%%%%%%%%%%%%%%%%%%%%%% TauF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+data.taufc1= .0394; %initial = .0197
+data.taufc2= .04;   %initial = .02
+data.taufc3= .0674; %initial = .0337
+data.taufc_thresh= 10; %initial = 10
 
 
 
@@ -219,7 +222,6 @@ data.ibarnak = 2.25*1.00; % Max. current through Na-K pump (uA/uF)
 % 
 % 
 % data.PCl=4e-7;
-% 
 % 
 % 
 % 

@@ -99,7 +99,7 @@ taud=dss.*(1-exp(-(v+10)/6.24))./(0.035*(v+10));
   dss=dss*dss1;
 fss=1./(1+exp((v+32)/8))+(0.6)./(1+exp((50-v)/20));
 
-tauf=1./(0.0197*exp(-(0.0337*(v+10))^2)+0.02);
+tauf=1./(data.taufc1*exp(-(data.taufc3*(v+data.taufc_thresh))^2)+data.taufc2);
 ibarca= data.pca*4*v*data.F*data.frt*((data.gacai*cai*exp(2*v*data.frt)-data.gacao*data.ca_o)/(exp(2*v*data.frt)-1));
 
 ibarna= data.pna*(v*data.F*data.frt).*((data.ganai*nai*exp(v*data.frt)-data.ganao*data.na_o)./(exp(v*data.frt)-1));

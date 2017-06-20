@@ -7,8 +7,7 @@ clear variables;
 %ms = 10; fs = 14; % marker size and font size
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
 
-%folder = ['lrddata/'];
-folder = ['C:\Users\laura\Google Drive\REU 2017\Data\400-70 ms taufc1 = .1576\']
+folder = ['lrddata/'];
 
 load([folder 'pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
 datapacedown = data;
