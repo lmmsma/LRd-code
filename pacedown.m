@@ -19,6 +19,7 @@ end
 
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
 %bcls = [1000 90];
+%bcls = [400: -50:400 390: -10: 70]; %Reduced Pacedown
 bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
 %bcls = [50:-1:40]; %cycle lengths in ms
 
