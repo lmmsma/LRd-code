@@ -6,7 +6,7 @@
 clear variables;
 
 plottsflagV = 0; % if nonzero, produce a V vs time timeseries plot for each BCL
-plottsflagCa = 1; %if nonzero, produce a Ca vs Time timeseries plot for each BCL
+plottsflagCa = 0; %if nonzero, produce a Ca vs Time timeseries plot for each BCL
 
 %folder = ['lrddata/pacedownKstim1000_50_pace30000ms_samp0p5ms/'];
 %folder = ['Stored_Runs/Default-400_70/'];
