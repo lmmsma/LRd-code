@@ -88,8 +88,13 @@ data.gako=0.75;       % Activity coefficient of K
 
 
 data.gcat = 0.05;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TauF Default Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%data.taufc1= .0197;
+%data.taufc2= .02;
+%data.taufc3= .0337;
+%data.taufc_thresh= 10;
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%% TauF %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TauF Adjusted Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 data.taufc1= .0394; %initial = .0197
 data.taufc2= .04;   %initial = .02
 data.taufc3= .0674; %initial = .0337
