@@ -5,7 +5,8 @@
 
 clear variables;
 
-plottsflag = 0; % if nonzero, produce a timeseries plot for each BCL
+plottsflagV = 0; % if nonzero, produce a V vs time timeseries plot for each BCL
+plottsflagCa = 1; %if nonzero, produce a Ca vs Time timeseries plot for each BCL
 
 %folder = ['lrddata/pacedownKstim1000_50_pace30000ms_samp0p5ms/'];
 %folder = ['Stored_Runs/Default-400_70/'];
@@ -77,6 +78,8 @@ for i = 1:nbcls
     
     V = Y(1,indexstart:indexend); % membrane potential over last ncyc cycles
     
+    Ca = Y(8,indexstart:indexend); % Calcium concentration over last ncyc cylces
+    
     % time range for this part of the pacedown
     time = pacetimeperbcl*(i-1)+(indexstart:indexend)*outstep;
     
@@ -122,7 +125,7 @@ for i = 1:nbcls
         return; % exit if first depol comes after first repol
     end
     
-    if plottsflag % Create time-series plots
+    if plottsflagV % Create time-series plots for V vs T
         figure
         hold on;
         plot(time, V)
@@ -136,6 +139,16 @@ for i = 1:nbcls
         end
        xlabel('time, ms')
        ylabel('V, mV')
+%       title(['BCL = ' num2str(bcl) ' ms, stimulated through ' stimtitlestr])
+       title(['BCL = ' num2str(bcl) ' ms'])
+    end
+    
+    if plottsflagCa % Create time-series plots for Ca vs T
+        figure
+        hold on;
+        plot(time, Ca)
+       xlabel('time, ms')
+       ylabel('Ca, mmol/L')
 %       title(['BCL = ' num2str(bcl) ' ms, stimulated through ' stimtitlestr])
        title(['BCL = ' num2str(bcl) ' ms'])
     end
