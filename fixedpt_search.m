@@ -1,6 +1,6 @@
 %LMM: perform fixed-point search on LRD model
 clear variables;
-
+%% Settings for Fixed Point search
 ms = 10; fs = 14; % marker size and font size
 
 folder = ['lrddata/']; % save data here
@@ -46,16 +46,24 @@ maxabsfperr = NaN; % maximum absolute value of p2p error (use to determine wheth
 % ierr=NaN;
 % x_hist=NaN;
 
+%% Set up BCL's to be evaluated by prompt or manually (hard-coded)
+%USE ONLY ONE bcls vector; Comment out all other lines
+%---------------------Prompts--------------------------------%
+bcl_max= int32(str2num(input('Enter max BCL\n', 's')));
+bcl_step= -int32(str2num(input('Enter BCL step size\n', 's')));
+bcl_num= int32(str2num(input('Enter number of BCLs to evaluate\n', 's')));
+bcls= [bcl_max:bcl_step:bcl_max+bcl_step*(bcl_num-1)]
 
+
+%---------------------Manual Setup---------------------------%
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
-bcls = [1000 950];
+% bcls = [600 550 500];
 %bcls = [1000:-50:200 190:-10:70 69:-1:50]; %full pacedown; cycle lengths in ms
 %bcls = [1000:-50:300 290:-10:70 69:-1:50]; %revised full pacedown (more points leading up to 200ms)
 %bcls = [400:-50:300 290:-10:70]; %revised shortened pacedown
 %bcls = [50:-1:40]; %cycle lengths in ms
 
-% Load initial condition, if there happens to be a preferred one for the
-% starting bcl value
+%% Loading Initial Conditions for starting BCL, if they exist
 if bcls(1) == 1000
     bcl = bcls(1);
     % Filenames and label settings based on fixed point type:
@@ -73,23 +81,26 @@ if bcls(1) == 1000
         eval(['load ' unpertfilename ' ' systemselect])
         yinit = eval(systemselect);
     end
-elseif bcls(1) == 900
-    if data.stimflag
-        eval(['load ' folder 'pacedownKstim1000_900_pace30000ms_samp0p5ms/lrddata_1cell_b900 Y'])
-    else
-        eval(['load ' folder 'pacedownVstim1000_900_pace30000ms_samp0p5ms/lrddata_1cell_b900 Y'])
+else
+    bcl = bcls(1);
+    % Filenames and label settings based on fixed point type:
+    fname = [folder 'lrddata_1cell_b' num2str(bcl)]; 
+    if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
+        eval(['load ' fname ' Y']) % load the state vectors
+        yinit = Y(:,end); % load final condition of previous recording        
+    else % load fixed points from older study
+        if strcmp(systemselect, 'solem12')
+            unpertfilename = 'b1000fsolem12_fwde_shift0_newpulse';
+        elseif strcmp(systemselect,'kmonovsolem12')
+            unpertfilename = 'b1000fkmonovsolem12_fwde_shift0_newpulse_relpert1e-7';
+        end
+        % Load the unperturbed fixed point
+        eval(['load ' unpertfilename ' ' 'yin'])
+        yinit = eval(systemselect);
     end
-    yinit = Y(:,end); % load final condition of previous recording
-elseif bcls(1) == 50
-    if data.stimflag
-        eval(['load ' folder 'pacedownKstim1000_50_pace30000ms_samp0p5ms/lrddata_1cell_b50 Y'])
-    else
-        eval(['load ' folder 'pacedownVstim1000_50_pace30000ms_samp0p5ms/lrddata_1cell_b50 Y'])
-    end
-    yinit = Y(:,end); % load final condition of previous recording
 end
 
-
+%% Find Fixed Points
 ncyc = 1; % Run the model for this number of cycles per bcl setting.
 %To identify a period-n trajectory, should set ncyc = n.
 
