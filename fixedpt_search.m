@@ -49,15 +49,15 @@ maxabsfperr = NaN; % maximum absolute value of p2p error (use to determine wheth
 %% Set up BCL's to be evaluated by prompt or manually (hard-coded)
 %USE ONLY ONE bcls vector; Comment out all other lines
 %---------------------Prompts--------------------------------%
-bcl_max= int32(str2num(input('Enter max BCL\n', 's')));
-bcl_step= -int32(str2num(input('Enter BCL step size\n', 's')));
-bcl_num= int32(str2num(input('Enter number of BCLs to evaluate\n', 's')));
+bcl_max= input('Enter max BCL\n');
+bcl_step= -input('Enter BCL step size\n');
+bcl_num= input('Enter number of BCLs to evaluate\n');
 bcls= [bcl_max:bcl_step:bcl_max+bcl_step*(bcl_num-1)]
 
 
 %---------------------Manual Setup---------------------------%
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
-% bcls = [600 550 500];
+% bcls = [600 550 500]
 %bcls = [1000:-50:200 190:-10:70 69:-1:50]; %full pacedown; cycle lengths in ms
 %bcls = [1000:-50:300 290:-10:70 69:-1:50]; %revised full pacedown (more points leading up to 200ms)
 %bcls = [400:-50:300 290:-10:70]; %revised shortened pacedown
