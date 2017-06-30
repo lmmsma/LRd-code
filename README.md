@@ -35,4 +35,4 @@ jacobian_cd.m: Compute central-difference approximation to Jacobian.
 
 computejacobians.m: Compute one Jacobian per BCL (call jacobian_cd from within a loop). 
 
-diffjac_mod.m: Commented out one line that echoed a quantity to the screen. 
+dirder_mod.m: Commented out one line that echoed a quantity to the screen. 
