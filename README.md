@@ -28,3 +28,9 @@ lrddata_1cell_b1000.mat: The final state of Y in this file is the fixed point th
 fp_compile.m: Compiles the fixed points found by fixedpt_search.m into a matrix.
 
 fp_plot.m: Plots the fixed points found in the matrix created by fp_compile.m by their individual variables vs BCL
+
+jacobian_cd.m: Compute central-difference approximation to Jacobian. 
+
+computejacobians.m: Compute one Jacobian per BCL (call jacobian_cd from within a loop). 
+
+diffjac_mod.m: Commented out one line that echoed a quantity to the screen. 
