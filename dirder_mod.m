@@ -51,7 +51,7 @@ epsnew = epsnew/norm(w);
 %if norm(x) > 0
 %    epsnew=epsnew*norm(x);
 %end
-x(w==1)
+%x(w==1)
 if abs(x(w==1))>1e-10 % if the element size is above some threshold value
     epsnew = epsnew*abs(x(w==1))
 else

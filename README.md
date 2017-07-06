@@ -25,6 +25,14 @@ lrd_p2p: Made changes to make it compatible with nsoli.m, in addition to pacedow
 
 lrddata_1cell_b1000.mat: The final state of Y in this file is the fixed point that I found for bcl = 1000 on my Surface Pro 3. In order to get the fixed point to be loaded properly by fixedpt_search.m, the lrddata...mat file must be moved into the lrddata/ directory. 
 
+---
 fp_compile.m: Compiles the fixed points found by fixedpt_search.m into a matrix.
 
 fp_plot.m: Plots the fixed points found in the matrix created by fp_compile.m by their individual variables vs BCL
+
+---
+jacobian_cd.m: Compute central-difference approximation to Jacobian. 
+
+computejacobians.m: Compute one Jacobian per BCL (call jacobian_cd from within a loop). 
+
+dirder_mod.m: Commented out one line that echoed a quantity to the screen. 
