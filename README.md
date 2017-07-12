@@ -36,3 +36,8 @@ jacobian_cd.m: Compute central-difference approximation to Jacobian.
 computejacobians.m: Compute one Jacobian per BCL (call jacobian_cd from within a loop). 
 
 dirder_mod.m: Commented out one line that echoed a quantity to the screen. 
+
+---
+computejacobians: moved "save" command to inside the for loop, which is more convenient in case of a crash. 
+
+compute_obsv_ctrb.m: Computes and plots observable and controllable eigenvalues for LRd Jacobians, for different choices of measurement and control input. Values are computed for the default (unscaled) and pseudo-normalized (scaled) systems. Create a folder called OCvalues before running the script for the first time. 
