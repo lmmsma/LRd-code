@@ -46,12 +46,13 @@ for i = 1:length(bcls)
     eval(['save ' jacfolder 'lrdinputs bcl ncyc subdiv_per_cyc'])
     
     alljacs{i} = jacobian_cd(allfp(:,i),epsln,modelname);
+    
+    % Save settings and Jacobians (OK to overwrite each time) 
+    eval(['save ' jacfolder 'jacfile *'])
 end
 
 % Time elapsed during computation
 jacstoptimer = toc(jacstarttimer)
 
-% Save settings and Jacobians
-eval(['save ' jacfolder 'jacfile *'])
 
 
