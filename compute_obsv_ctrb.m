@@ -7,22 +7,30 @@
 
 clear variables;
 
+adj_yn = input('Default or adjusted parameters (enter 0 if default, 1 if adjusted) ') == 1;
+if adj_yn
+    param= 'adj';
+else
+    param = 'def';
+end
 ms = 10; fs = 14; % marker size and font size
 
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
 
 Jacobians = 'Jacobians/'; % folder where jacobians are stored
 
-%Eigenvalues = 'Eigenvalues/'; %folder where eigenvalues are stored
+Eigenvalues = 'Eigenvalues/'; %folder where eigenvalues are stored
 
 OCvalues = 'OCvalues/'; %folder where obsv and ctrb values will be saved
 
-eval(['load ' Jacobians 'jacfile *']) %Load Jacobians
+eval(['load ' Jacobians 'jacfile_' param ' data allfp modelname bcls alljacs']); %Load Jacobians
+eval(['load ' Eigenvalues 'eigfile_' param ' allv alleigs']);
 
 numstate = size(alljacs{1},1); % number of state variables
 
 nbcls = length(bcls); % number of bcls
 
+thresh = .0005;
 % input matrix for all possible individual inputs
 B = data.dt*eye(numstate); % This isn't necessarily right, just a placeholder. In general, B isn't square and its nonzero elements aren't 1.
 
@@ -43,22 +51,29 @@ umax = diag(ones(1,size(B,2))); % This is also incorrect and just a placeholder.
 Bs = Smat*B*umax; % scaled B matrix
 Cs = C*Smatinv; % scaled C matrix (could use Smat*C*Smatinv instead, if the output should also be normalized?
 
-rankcutoff = 1e-14; % below this level, singular values don't contribute to the rank
+rankcutoff = 1e-6; % below this level, singular values don't contribute to the rank
 
 % Intitalize matrices
-evcf = cell(nbcls,numstate);
-evof = cell(nbcls,numstate);
-evncf = cell(nbcls,numstate);
-evnof = cell(nbcls,numstate);
-rankcf = zeros(nbcls,numstate);
-rankof = zeros(nbcls,numstate);
-rankcf_scaled = zeros(nbcls,numstate);
-rankof_scaled = zeros(nbcls,numstate);
-evcf_scaled = cell(nbcls,numstate);
-evof_scaled = cell(nbcls,numstate);
-evncf_scaled = cell(nbcls,numstate);
-evnof_scaled = cell(nbcls,numstate);
-
+eigcf.cval = cell(nbcls,numstate);
+eigof.oval = cell(nbcls,numstate);
+eigcf.ncval = cell(nbcls,numstate);
+eigof.noval = cell(nbcls,numstate);
+eigcf.rank = zeros(nbcls,numstate);
+eigof.rank = zeros(nbcls,numstate);
+eigcf.rank_sc = zeros(nbcls,numstate);
+eigof.rank_sc = zeros(nbcls,numstate);
+eigcf.cval_sc = cell(nbcls,numstate);
+eigof.oval_sc = cell(nbcls,numstate);
+eigcf.ncval_sc = cell(nbcls,numstate);
+eigof.noval_sc = cell(nbcls,numstate);
+eigcf.cvec = cell(nbcls, numstate);
+eigcf.ncvec = cell(nbcls, numstate);
+eigof.ovec = cell(nbcls, numstate);
+eigof.novec = cell(nbcls, numstate);
+eigcf.cvec_sc = cell(nbcls, numstate);
+eigcf.ncvec_sc = cell(nbcls, numstate);
+eigof.ovec_sc = cell(nbcls, numstate);
+eigof.novec_sc = cell(nbcls, numstate);
 
 for i = 1:nbcls
     bcl = bcls(i);
@@ -74,124 +89,62 @@ for i = 1:nbcls
         % Compute controllable and uncontrollable subspaces, keeping C
         % fixed
         [Abar,Bbar,Cbar,T,k] = ctrbf(jaccd,B(:,kb),C(1,:),rankcutoff);
-        rankcf(i,kb) = sum(k); % rank of controllable subspace
+        eigcf.rank(i,kb) = sum(k); % rank of controllable subspace
         % eigenvalues that are controllable from this input
-        evcf{i,kb} = eig(Abar((numstate-rankcf(i,kb)+1):end,(numstate-rankcf(i,kb)+1):end),'nobalance'); % eigenvalues of Ac
+        eigcf.cval{i,kb} = eig(Abar((numstate-eigcf.rank(i,kb)+1):end,(numstate-eigcf.rank(i,kb)+1):end),'nobalance'); % eigenvalues of Ac
         % eigenvalues that are not controllable from this input
-        evncf{i,kb} = eig(Abar(1:(numstate-rankcf(i,kb)),1:(numstate-rankcf(i,kb))),'nobalance'); % eigenvalues of Anc
+        eigcf.ncval{i,kb} = eig(Abar(1:(numstate-eigcf.rank(i,kb)),1:(numstate-eigcf.rank(i,kb))),'nobalance'); % eigenvalues of Anc
         % repeat calculations for scaled system
         [Abars,Bbars,Cbars,Ts,ks] = ctrbf(Smat*jaccd*Smatinv,Bs(:,kb),Cs(1,:),rankcutoff);
-        rankcf_scaled(i,kb) = sum(ks);
-        evcf_scaled{i,kb} = eig(Abars((numstate-rankcf_scaled(i,kb)+1):end,(numstate-rankcf_scaled(i,kb)+1):end),'nobalance'); % eigenvalues of Ac
-        evncf_scaled{i,kb} = eig(Abars(1:(numstate-rankcf_scaled(i,kb)),1:(numstate-rankcf_scaled(i,kb))),'nobalance'); % eigenvalues of Anc
+        eigcf.rank_sc(i,kb) = sum(ks);
+        eigcf.cval_sc{i,kb} = eig(Abars((numstate-eigcf.rank_sc(i,kb)+1):end,(numstate-eigcf.rank_sc(i,kb)+1):end),'nobalance'); % eigenvalues of Ac
+        eigcf.ncval_sc{i,kb} = eig(Abars(1:(numstate-eigcf.rank_sc(i,kb)),1:(numstate-eigcf.rank_sc(i,kb))),'nobalance'); % eigenvalues of Anc
     end
     % Cycle through possible outputs
     for kc = 1:size(C,1)
         % Compute observable and unobservable subspaces, keeping B
         % fixed
         [Abar,Bbar,Cbar,T,k] = obsvf(jaccd,B(:,1),C(kc,:),rankcutoff);
-        rankof(i,kc) = sum(k); % rank of observable subspace
+        eigof.rank(i,kc) = sum(k); % rank of observable subspace
         % eigenvalues that are observable from this output
-        evof{i,kc} = eig(Abar((numstate-rankof(i,kc)+1):end,(numstate-rankof(i,kc)+1):end),'nobalance'); % eigenvalues of Ao
+        eigof.oval{i,kc} = eig(Abar((numstate-eigof.rank(i,kc)+1):end,(numstate-eigof.rank(i,kc)+1):end),'nobalance'); % eigenvalues of Ao
+        eigof.ovec{i ,kc}= zeros(17, eigof.rank(i, kc));
+        for j=1:eigof.rank(i, kc)
+            f= allv{1, i}(:,abs(real(alleigs{1, i})-eigof.oval{i, kc}(j)) < abs(real(eigof.oval{i, kc}(j)*thresh)));
+            if ~isempty(f)
+                eigof.ovec{i,kc}(:, j)= f;
+            end
+        end
         % eigenvalues that are not observable from this output
-        evnof{i,kc} = eig(Abar(1:(numstate-rankof(i,kc)),1:(numstate-rankof(i,kc))),'nobalance'); % eigenvalues of Ano
+        eigof.noval{i,kc} = eig(Abar(1:(numstate-eigof.rank(i,kc)),1:(numstate-eigof.rank(i,kc))),'nobalance'); % eigenvalues of Ano
+        eigof.novec{i ,kc}= zeros(17, numstate-eigof.rank(i, kc));
+        for j=1:(numstate- eigof.rank(i, kc))
+            f= allv{1, i}(:,abs(real(alleigs{1, i})-eigof.noval{i, kc}(j)) < abs(real(eigof.noval{i, kc}(j)*thresh)));
+            if ~isempty(f)
+                eigof.novec{i,kc}(:, j)=  f;
+            end
+        end
         % repeat calculations for scaled system
         [Abars,Bbars,Cbars,Ts,ks] = obsvf(Smat*jaccd*Smatinv,Bs(:,1),Cs(kc,:),rankcutoff);
-        rankof_scaled(i,kc) = sum(ks);
-        evof_scaled{i,kc} = eig(Abars((numstate-rankof_scaled(i,kc)+1):end,(numstate-rankof_scaled(i,kc)+1):end),'nobalance'); % eigenvalues of Ao
-        evnof_scaled{i,kc} = eig(Abars(1:(numstate-rankof_scaled(i,kc)),1:(numstate-rankof_scaled(i,kc))),'nobalance'); % eigenvalues of Ano
-    end
-    
-    eval(['save ' OCvalues 'ocfile *'])
-end
-
-% Plot results and save figures
-
-% Cycle through possible outputs (measurements), unscaled system  
-for kk = 1:numstate
-    figure
-    title(['Observable eigenvalues, measurement = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-    ylabel('Eigenvalue magnitude');
-    xlabel('BCL (ms)');
-    grid on;
-    hold on;
-    for i=1:nbcls
-        if ~isempty(evof{i,kk})
-            p1 = plot(bcls(i)*ones(size(evof{i,kk})),abs(evof{i,kk}),'b*');
+        eigof.rank_sc(i,kc) = sum(ks);
+        eigof.oval_sc{i,kc} = eig(Abars((numstate-eigof.rank_sc(i,kc)+1):end,(numstate-eigof.rank_sc(i,kc)+1):end),'nobalance'); % eigenvalues of Ao
+        eigof.ovec_sc{i ,kc}= zeros(17, eigof.rank_sc(i, kc));
+        for j=1:eigof.rank_sc(i, kc)
+            f= allv{1, i}(:, abs(real(alleigs{1, i})-eigof.oval_sc{i, kc}(j)) < abs(real(eigof.oval_sc{i, kc}(j)*thresh)));
+            if ~isempty(f)
+                eigof.ovec_sc{i,kc}(:, j)= f;
+            end
         end
-        if ~isempty(evnof{kk})
-            p2 = plot(bcls(i)*ones(size(evnof{i,kk})),abs(evnof{i,kk})','r*');
+        eigof.noval_sc{i,kc} = eig(Abars(1:(numstate-eigof.rank_sc(i,kc)),1:(numstate-eigof.rank_sc(i,kc))),'nobalance'); % eigenvalues of Ano
+        eigof.novec_sc{i ,kc}= zeros(17, numstate-eigof.rank_sc(i, kc));
+        for j=1:(numstate-eigof.rank_sc(i, kc))
+            f= allv{1, i}(:, abs(real(alleigs{1, i})-eigof.noval_sc{i, kc}(j)) < abs(real(eigof.noval_sc{i, kc}(j)*thresh)));
+            if ~isempty(f)
+                eigof.novec_sc{i,kc}(:, j)= f;
+            end
         end
-        legend([p1 p2],'observable','unobservable')
-        saveas(gcf,[OCvalues 'obsvf_eig_meas' num2str(kk)])
     end
 end
-
-
-% Cycle through possible outputs (measurements), scaled system  
-for kk = 1:numstate
-    figure
-    title(['Scaled system, observable eig., meas. = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-    ylabel('Eigenvalue magnitude');
-    xlabel('BCL (ms)');
-    grid on;
-    hold on;
-    for i=1:nbcls
-        if ~isempty(evof_scaled{i,kk})
-            p1 = plot(bcls(i)*ones(size(evof_scaled{i,kk})),abs(evof_scaled{i,kk}),'b*');
-        end
-        if ~isempty(evnof{kk})
-            p2 = plot(bcls(i)*ones(size(evnof_scaled{i,kk})),abs(evnof_scaled{i,kk})','r*');
-        end
-        legend([p1 p2],'observable','unobservable')
-        saveas(gcf,[OCvalues 'obsvf_scaled_eig_meas' num2str(kk)])
-    end
-end
-
-% Having 17x4 = 68 figures open at once may cause problems, so close some
-% of them, if desired
-cfflag = input('Before generating controllability figures, enter 1 to close observability figures, or enter 0 to keep the figures: ')
-if cfflag
-    close all; 
-end
-
-% Cycle through possible control inputs, unscaled system  
-for kk = 1:numstate
-    figure
-    title(['Controllable eigenvalues, input = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-    ylabel('Eigenvalue magnitude');
-    xlabel('BCL (ms)');
-    grid on;
-    hold on;
-    for i=1:nbcls
-        if ~isempty(evcf{i,kk})
-            p1 = plot(bcls(i)*ones(size(evcf{i,kk})),abs(evcf{i,kk}),'b*');
-        end
-        if ~isempty(evncf{kk})
-            p2 = plot(bcls(i)*ones(size(evncf{i,kk})),abs(evncf{i,kk})','r*');
-        end
-        legend([p1 p2],'controllable','uncontrollable')
-        saveas(gcf,[OCvalues 'ctrbf_eig_meas' num2str(kk)])
-    end
-end
-
-% Cycle through possible control inputs, scaled system
-for kk = 1:numstate
-    figure
-    title(['Scaled system, controllable eig., input = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-    ylabel('Eigenvalue magnitude');
-    xlabel('BCL (ms)');
-    grid on;
-    hold on;
-    for i=1:nbcls
-        if ~isempty(evcf_scaled{i,kk})
-            p1 = plot(bcls(i)*ones(size(evcf_scaled{i,kk})),abs(evcf_scaled{i,kk}),'b*');
-        end
-        if ~isempty(evncf_scaled{kk})
-            p2 = plot(bcls(i)*ones(size(evncf_scaled{i,kk})),abs(evncf_scaled{i,kk})','r*');
-        end
-        legend([p1 p2],'controllable','uncontrollable')
-        saveas(gcf,[OCvalues 'ctrbf_scaled_eig_meas' num2str(kk)])
-    end
-end
-    
+clear adj_yn bcl B C Cs Eigenvalues f fs i j Jacobians k kb kc ks ms Smat Smatinv umax varamp;
+eval(['save ' OCvalues param '/ocfile *'])
+%Use plot_obs_cont to plot these results
