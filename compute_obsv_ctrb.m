@@ -29,8 +29,11 @@ eval(['load ' Eigenvalues 'eigfile_' param ' allv alleigs']);
 numstate = size(alljacs{1},1); % number of state variables
 
 nbcls = length(bcls); % number of bcls
+%--------------------------------------------------------------------------%
+thresh = .0001; %Threshold for determining whether eigenvalues are identical
+rankcutoff = 1e-06; % below this level, singular values don't contribute to the rank
+%--------------------------------------------------------------------------%
 
-thresh = .0005;
 % input matrix for all possible individual inputs
 B = data.dt*eye(numstate); % This isn't necessarily right, just a placeholder. In general, B isn't square and its nonzero elements aren't 1.
 
@@ -50,8 +53,6 @@ umax = diag(ones(1,size(B,2))); % This is also incorrect and just a placeholder.
 % deviational max for integrated system.
 Bs = Smat*B*umax; % scaled B matrix
 Cs = C*Smatinv; % scaled C matrix (could use Smat*C*Smatinv instead, if the output should also be normalized?
-
-rankcutoff = 1e-6; % below this level, singular values don't contribute to the rank
 
 % Intitalize matrices
 eigcf.cval = cell(nbcls,numstate);
@@ -76,6 +77,7 @@ eigof.ovec_sc = cell(nbcls, numstate);
 eigof.novec_sc = cell(nbcls, numstate);
 
 for i = 1:nbcls
+    %% Controllability
     bcl = bcls(i);
     % print current BCL to screen
     disp(['BCL = ' num2str(bcl) ' ms'])
@@ -100,6 +102,9 @@ for i = 1:nbcls
         eigcf.cval_sc{i,kb} = eig(Abars((numstate-eigcf.rank_sc(i,kb)+1):end,(numstate-eigcf.rank_sc(i,kb)+1):end),'nobalance'); % eigenvalues of Ac
         eigcf.ncval_sc{i,kb} = eig(Abars(1:(numstate-eigcf.rank_sc(i,kb)),1:(numstate-eigcf.rank_sc(i,kb))),'nobalance'); % eigenvalues of Anc
     end
+    
+    
+    %% Observability
     % Cycle through possible outputs
     for kc = 1:size(C,1)
         % Compute observable and unobservable subspaces, keeping B

@@ -12,12 +12,20 @@ def.evof = eigof.oval;
 def.evnof = eigof.noval;
 def.evof_scaled = eigof.oval_sc;
 def.evnof_scaled = eigof.noval_sc;
+def.evcf = eigcf.cval;
+def.evncf = eigcf.ncval;
+def.evcf_scaled = eigcf.cval_sc;
+def.evncf_scaled = eigcf.ncval_sc;
 
 eval(['load ' oc_folder '/adj/ocfile *']);
 adj.evof = eigof.oval;
 adj.evnof = eigof.noval;
 adj.evof_scaled = eigof.oval_sc;
 adj.evnof_scaled = eigof.noval_sc;
+adj.evcf = eigcf.cval;
+adj.evncf = eigcf.ncval;
+adj.evcf_scaled = eigcf.cval_sc;
+adj.evncf_scaled = eigcf.ncval_sc;
 
 clearvars -except def adj rankcutoff bcls numstate statenames nbcls oc_folder;
 def_adj = cell(1, 2);
@@ -72,7 +80,7 @@ for kk = 1:numstate
 end
 
 
-%% Controllability Plots (Omitted 
+%% Controllability Plots
 
 % % Having 17x4 = 68 figures open at once may cause problems, so close some
 % % of them, if desired
@@ -83,40 +91,48 @@ end
 % 
 % % Cycle through possible control inputs, unscaled system  
 % for kk = 1:numstate
-%     figure
-%     title([param, ': Controllable eigenvalues, input = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-%     ylabel('Eigenvalue magnitude');
-%     xlabel('BCL (ms)');
-%     grid on;
-%     hold on;
-%     for i=1:nbcls
-%         if ~isempty(evcf{i,kk})
-%             p1 = plot(bcls(i)*ones(size(evcf{i,kk})),abs(evcf{i,kk}),'b*');
+%     eval(['g' num2str(kk) '= figure;']);
+%     set(gcf, 'Position', [317 155 1102 781]);
+%     for adj_yn= 1:2
+%         if adj_yn==1
+%             param = 'Default';
+%         else
+%             param = 'Adjusted';
 %         end
-%         if ~isempty(evncf{kk})
-%             p2 = plot(bcls(i)*ones(size(evncf{i,kk})),abs(evncf{i,kk})','r*');
+%         subplot(2, 2, adj_yn)
+%         title({[param, ': controllable eigenvalues'], ['Meas. = ' strtrim(statenames(kk,:)) ', rankcutoff = ' num2str(rankcutoff)]});
+%         ylabel('Eigenvalue magnitude');
+%         xlabel('BCL (ms)');
+%         grid on;
+%         hold on;
+%         for i=1:nbcls
+%             if ~isempty(def_adj{adj_yn}.evcf{i,kk})
+%                 p1 = plot(bcls(i)*ones(size(def_adj{adj_yn}.evcf{i,kk})),abs(def_adj{adj_yn}.evcf{i,kk}),'b*');
+%             end
+%             if ~isempty(def_adj{adj_yn}.evncf{kk})
+%                 p2 = plot(bcls(i)*ones(size(def_adj{adj_yn}.evncf{i,kk})),abs(def_adj{adj_yn}.evncf{i,kk})','ro');
+%             end
+%             %legend([p1 p2],'observable','unobservable')
+%             %saveas(gcf,[oc_folder 'obsvf_eig_meas' num2str(kk)])
 %         end
-%         legend([p1 p2],'controllable','uncontrollable')
-%         saveas(gcf,[OCvalues 'ctrbf_eig_meas' num2str(kk)])
+%         
+%         %Plots the Scaled versions on the same figure
+%         subplot(2, 2, adj_yn+2)
+%         title({[param, ': Scaled system, controllable eig.'], ['Meas. = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]});
+%         ylabel('Eigenvalue magnitude');
+%         xlabel('BCL (ms)');
+%         grid on;
+%         hold on;
+%         for i=1:nbcls
+%             if ~isempty(def_adj{adj_yn}.evcf_scaled{i,kk})
+%                 p1 = plot(bcls(i)*ones(size(def_adj{adj_yn}.evcf_scaled{i,kk})),abs(def_adj{adj_yn}.evcf_scaled{i,kk}),'b*');
+%             end
+%             if ~isempty(def_adj{adj_yn}.evncf{kk})
+%                 p2 = plot(bcls(i)*ones(size(def_adj{adj_yn}.evncf_scaled{i,kk})),abs(def_adj{adj_yn}.evncf_scaled{i,kk})','ro');
+%             end
+%             %legend([p1 p2],'observable','unobservable')
+%         end
 %     end
-% end
-% 
-% % Cycle through possible control inputs, scaled system
-% for kk = 1:numstate
-%     figure
-%     title([param, ': Scaled system, controllable eig., input = ' strtrim(statenames(kk,:)), ', rankcutoff = ' num2str(rankcutoff)]);
-%     ylabel('Eigenvalue magnitude');
-%     xlabel('BCL (ms)');
-%     grid on;
-%     hold on;
-%     for i=1:nbcls
-%         if ~isempty(evcf_scaled{i,kk})
-%             p1 = plot(bcls(i)*ones(size(evcf_scaled{i,kk})),abs(evcf_scaled{i,kk}),'b*');
-%         end
-%         if ~isempty(evncf_scaled{kk})
-%             p2 = plot(bcls(i)*ones(size(evncf_scaled{i,kk})),abs(evncf_scaled{i,kk})','r*');
-%         end
-%         legend([p1 p2],'controllable','uncontrollable')
-%         saveas(gcf,[OCvalues 'ctrbf_scaled_eig_meas' num2str(kk)])
-%     end
+%     saveas(gcf,[oc_folder 'ctrbf_eig_meas_subplots' num2str(kk) '_E' num2str(log10(rankcutoff))])
+%     saveas(gcf,[oc_folder 'ctrbf_eig_meas_subplots' num2str(kk) '_E' num2str(log10(rankcutoff)) '.jpeg'])
 % end
