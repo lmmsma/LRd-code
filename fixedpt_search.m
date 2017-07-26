@@ -179,5 +179,3 @@ fpstoptimer = toc(fpstarttimer)
 
 % Save settings and fixed-point values
 eval(['save ' folder 'fpfile *'])
-
-

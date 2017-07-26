@@ -31,7 +31,7 @@ numstate = size(alljacs{1},1); % number of state variables
 nbcls = length(bcls); % number of bcls
 %--------------------------------------------------------------------------%
 thresh = .0001; %Threshold for determining whether eigenvalues are identical
-rankcutoff = 1e-06; % below this level, singular values don't contribute to the rank
+rankcutoff = 1e-14; % below this level, singular values don't contribute to the rank
 %--------------------------------------------------------------------------%
 
 % input matrix for all possible individual inputs

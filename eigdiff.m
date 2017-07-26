@@ -1,4 +1,4 @@
-file1= 'Eigenvalues/eigfile_red';;%select reduced def param eigfile
+file1= 'Eigenvalues/eigfile_def';;%select reduced def param eigfile
 file2= 'Eigenvalues/eigfile_adj';%select adjusted parameter eigfile
 load(file1, 'alleigsabs');
 alleigs_def= alleigsabs;
@@ -18,6 +18,6 @@ for i=1:46
         hold on
     end
     xlabel('BCL (ms)');
-    ylabel('log_1_0(difference)');
+    ylabel('log_{10}(difference)');
     title('Difference in Eigenvalues between parameter sets');
 end

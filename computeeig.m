@@ -14,7 +14,7 @@ for i = 1:length(bcls)
     % print current BCL to screen
     disp(['BCL = ' num2str(bcl) ' ms'])
     
-    eval(['save ' Eigenvalues 'lrdinputs bcl ncyc subdiv_per_cyc'])
+    %eval(['save ' Eigenvalues 'lrdinputs bcl ncyc subdiv_per_cyc'])
     
     [allv{i}, eigv] = eig(alljacs{i});
     alleigs{i}= diag(eigv);
@@ -22,4 +22,4 @@ for i = 1:length(bcls)
     eval(['save ' Eigenvalues 'eigfile *'])
 end
 
-ploteigs
+% ploteigs
