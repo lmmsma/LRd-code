@@ -7,10 +7,16 @@ clear variables;
 %ms = 10; fs = 14; % marker size and font size
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
 
-folder = ['lrddata/'];
+%folder = ['lrddata'];
+folder = uigetdir; 
 
-load([folder 'pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
+load([folder '\pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
 datapacedown = data;
+
+overridebcls = input('Override default list of BCLs? Enter 1 for yes, 0 for no: ');
+if overridebcls
+    bcls = input('Enter vector of bcls, within square brackets: '); 
+end
 
 if data.stimflag % 0 if through V, otherwise through K+
     stimtitlestr = 'K+';
@@ -28,7 +34,7 @@ for ibcl=1:length(bcls)
     bcl = bcls(ibcl);
     ncyc = ncycs(ibcl);
     
-    fname = [folder 'lrddata_1cell_b' num2str(bcl)]; % save simulation data in this file
+    fname = [folder '\lrddata_1cell_b' num2str(bcl)]; % save simulation data in this file
     load(fname);
     
     if ~isequal(datapacedown.stimflag,data.stimflag) % Check for mismatch between stim methods

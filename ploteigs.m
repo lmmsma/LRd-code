@@ -1,13 +1,26 @@
 %This script is to be run after computeeig.m
 %It takes in the calculated eigenvalues and plots either their a)Magnitudes
 %vs. BCL or b)their Real vs. Imaginary parts
+% Script developed by Anthony and Ryan. Modified by Laura to include
+% epsilon values used in Jacobian computation. 
 
-eigfolder = 'Eigenvalues';
-eval(['load ' eigfolder '/eigfile bcls'])
+clear variables; 
+
+logepsln = -5; % This is the log10 of the epsilon value used in Jacobian computation. 
+
+paramflag = input('Default or adjusted parameters (enter 0 if default, 1 if adjusted) ') == 1;
+if paramflag
+    param= 'adj';
+else
+    param = 'def';
+end
+
+eigfolder = ['eigenvalues/' param];
+eval(['load ' eigfolder '/eigfile' num2str(logepsln) ' *'])
 %% Plotting Magnitude of Each Eigenvalue
-%figure
-title('\lambda Magnitudes for default parameters');
-ylabel('Eigenvalue magnitude');
+figure
+title(['Eigenvalue moduli for default parameters, epsilon = 10^{' num2str(logepsln) '}']);
+ylabel('|\lambda|');
 xlabel('BCL (ms)');
 grid on;
 hold on

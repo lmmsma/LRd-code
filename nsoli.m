@@ -88,12 +88,14 @@ debug = 0;
 %
 % Set internal parameters.
 %
-alpha = 1.d-4; sigma0 = .1; sigma1 = .5; maxarm = 20; gamma = .9;
+%alpha = 1.d-4; sigma0 = .1; sigma1 = .5; maxarm = 20; gamma = .9;
+alpha = 1.d-4; sigma0 = .1; sigma1 = .5; maxarm = 60; gamma = .9;
 %
 % Initialize it_hist, ierr, x_hist, and set the default values of
 % those iteration parameters which are optional inputs.
 %
-ierr = 0; maxit = 40; lmaxit = 40; etamax = .9; it_histx = zeros(maxit,3);
+%ierr = 0; maxit = 40; lmaxit = 40; etamax = .9; it_histx = zeros(maxit,3);
+ierr = 0; maxit = 60; lmaxit = 40; etamax = .9; it_histx = zeros(maxit,3);
 lmeth = 1; restart_limit = 20;
 if nargout == 4, x_hist = x; end
 %

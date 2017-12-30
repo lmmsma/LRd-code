@@ -87,8 +87,7 @@ xgtlin0 = 0.001*Smatinv*randn(numstate,1); % Random IC, but try to make proporti
 % Initialize state estimate (doesn't have to be a random variable) 
 %xhat0 = 0.01*ones(numstate,1); 
 %xhat0 = 0.01*Smatinv*ones(numstate,1); % Try to make proportional to state variable amplitudes
-%xhat0 = 0.01*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
-xhat0 = 0.005*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
+xhat0 = 0.01*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
 
 
 % Pre-generate unit-variance noise signals so that different Q/R 
@@ -301,8 +300,9 @@ figure
 subplot(2,1,1)
 hold
 plot(bclselect*(1:nsteps)/1000,eol_noiseless,'.-')
+plot(bclselect*(1:nsteps)/1000,eol_noiseless./eolmax,'.-')
 grid 
-ylabel('Error w/o fbk')
+ylabel('Normalized err. w/o fbk')
 axis([0 simtime/1000 -ylim ylim])
 title({[param ': Simulated estimation errors, with no noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
 subplot(2,1,2)
@@ -310,7 +310,7 @@ hold
 plot(bclselect*(1:nsteps)/1000,ekf_noiseless,'.-')
 grid 
 xlabel('time (sec)') 
-ylabel('Error w/ fbk')
+ylabel('Normalized err. w/ fbk')
 axis([0 simtime/1000 -ylim ylim])
 
 %saveas(gcf,[kf_folder 'kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
@@ -322,14 +322,14 @@ subplot(2,1,1)
 hold
 plot(bclselect*(1:nsteps)/1000,eol,'.-')
 grid 
-ylabel('Error w/o fbk')
+ylabel('Normalized err. w/o fbk')
 title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
 axis([0 simtime/1000 -ylimn ylimn])
 subplot(2,1,2)
 hold
 plot(bclselect*(1:nsteps)/1000,ekf,'.-')
 grid 
-ylabel('Error w/ fbk')
+ylabel('Normalized err. w/ fbk')
 xlabel('time (sec)') 
 axis([0 simtime/1000 -ylimn ylimn])
 

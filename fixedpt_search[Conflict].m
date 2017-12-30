@@ -1,12 +1,12 @@
 %LMM: perform fixed-point search on LRD model. With enhancements from A.
-%Guzman and R. Vogt.
+%Guzman and R. Vogt. 
 clear variables;
 %% Settings for Fixed Point search
 ms = 10; fs = 14; % marker size and font size
 
 modelinputfolder = ['lrddata/']; % this folder name is currently hardcoded into
 % lrd_p2p.m. The M-file will look in this folder for the lrdinputs files
-% specified later in this script.
+% specified later in this script. 
 
 fixedptfolder = 'fixedpoints/'; % save data here
 
@@ -47,7 +47,7 @@ stimstart = allstimstart(1);% stimulus start time, ms
 
 nsolitol = 1e-12; % abs & rel tolerance for Newton-Krylov solver
 %useoldfp = 1; % set to zero to always solve for fixed point; set to 1 to re-use fixed point
-fperrnorm = NaN; % maximum absolute value of p2p error
+maxabsfperr = NaN; % maximum absolute value of p2p error (use to determine whether OL f.p. is a valid CL f.p.)
 
 % % initialize nsoli output variables, in case usoldfp==1
 % it_hist = -1;
@@ -71,37 +71,33 @@ fperrnorm = NaN; % maximum absolute value of p2p error
 %bcls = [400:-50:300 290:-10:70]; %revised shortened pacedown
 %bcls = [50:-1:40]; %cycle lengths in ms
 % Below is A&R's bcls_tested vector from fp_compile.m. Is this for the
-% default parameters?
+% default parameters? 
 %bcls = [1000:-50:600 590:-10:510 505 500:-10:70];%Vector of bcls
-% Reduce step size after failure at 850ms:
+% Reduce step size after failure at 850ms: 
 %bcls = [875:-25:600 590:-10:510 505 500:-10:70];%Vector of bcls
-% Reduce step size after failure at 800ms:
+% Reduce step size after failure at 800ms: 
 %bcls = [810:-10:510 505 500:-10:70];%Vector of bcls
-% Reduce step size after failure at 570ms:
+% Reduce step size after failure at 570ms: 
 %bcls = [575:-5:70];%Vector of bcls
-% Reduce step size after failure at 530ms:
+% Reduce step size after failure at 530ms: 
 %bcls = 532:-2:70;%Vector of bcls
-% Reduce step size after failure at 522ms:
+% Reduce step size after failure at 522ms: 
 %bcls = 523:-1:70;%Vector of bcls
-% Increase maxarm from 20 to 30 in nsoli.m, after ierr=2 failure at 512ms:
+% Increase maxarm from 20 to 30 in nsoli.m, after ierr=2 failure at 512ms: 
 %bcls = 513:-1:70;%Vector of bcls
-% Increase maxit from 40 to 50 in nsoli.m, after ierr=1 failure at 507ms:
+% Increase maxit from 40 to 50 in nsoli.m, after ierr=1 failure at 507ms: 
 %bcls = 507:-1:70;%Vector of bcls
-% Increase maxarm from 30 to 40 in nsoli.m, after ierr=2 failure at 505ms:
+% Increase maxarm from 30 to 40 in nsoli.m, after ierr=2 failure at 505ms: 
 %bcls = 505:-1:70;%Vector of bcls
-% Reduce step size, after ierr=1 failure at 502ms:
+% Reduce step size, after ierr=1 failure at 502ms: 
 %bcls = 502:-0.5:70;%Vector of bcls
 % Restart search at 500 using 505 fixed point, after another failure at 502ms.
 % Increase bcl step size, even though this is counterintuitive:
 %bcls = 500:-5:70;%Vector of bcls
-% Continue search at 450ms, after ierr=2 error:
+% Continue search at 450ms, after ierr=2 error:  
 %bcls = 450:-10:70;%Vector of bcls
-% Continue search at 410ms, after ierr=2 error. Increase maxarm from 40 to 60 in nsoli.m:
-%bcls = 410:-10:70;%Vector of bcls
-% Continue search at 290ms, after ierr=1 error.
-%bcls = 290:-10:70;%Vector of bcls
-% Back up to 295 ms, after ierr=2 error at 290ms.
-%bcls = [295 290:-10:70];%Vector of bcls
+% Continue search at 410ms, after ierr=2 error. Increase maxarm from 540 to 0 in nsoli.m: at  
+bcls = 410:-10:70;%Vector of bcls
 
 %% Loading Initial Conditions for starting BCL, if they exist
 if bcls(1) == 1000
@@ -110,7 +106,7 @@ if bcls(1) == 1000
     fname = [fixedptfolder 'lrddata_1cell_b' num2str(bcl)]; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     else % load fixed points from older study
         if strcmp(systemselect, 'solem12')
             unpertfilename = 'b1000fsolem12_fwde_shift0_newpulse';
@@ -126,106 +122,85 @@ elseif bcls(1) == 875
     fname = [fixedptfolder 'lrddata_1cell_b900']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 810
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b825']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 575
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b580']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 532
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b535']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 523
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b524']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 513
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b513']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 507
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b507_old']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 505
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b505_old']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 502
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b502_old']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 500
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b505']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 elseif bcls(1) == 450
     % Filenames and label settings based on fixed point type:
     fname = [fixedptfolder 'lrddata_1cell_b450_old']; %
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
-    end
-elseif bcls(1) == 410
-    % Filenames and label settings based on fixed point type:
-    fname = [fixedptfolder 'lrddata_1cell_b410_old']; %
-    if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
-        eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
-    end
-    % elseif bcls(1) == 290
-    %     % Filenames and label settings based on fixed point type:
-    %     fname = [fixedptfolder 'lrddata_1cell_b290_old']; %
-    %     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
-    %         eval(['load ' fname ' Y']) % load the state vectors
-    %         yinit = Y(:,end); % load final condition of previous recording
-    %     end
-elseif bcls(1) == 295
-    % Filenames and label settings based on fixed point type:
-    fname = [fixedptfolder 'lrddata_1cell_b300']; %
-    if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
-        eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     end
 else
     bcl = bcls(1);
     % Filenames and label settings based on fixed point type:
-    fname = [fixedptfolder 'lrddata_1cell_b' num2str(bcl)];
+    fname = [fixedptfolder 'lrddata_1cell_b' num2str(bcl)]; 
     if exist([fname '.mat'],'file') % if a fixed point was found on a previous run, load it here
         eval(['load ' fname ' Y']) % load the state vectors
-        yinit = Y(:,end); % load final condition of previous recording
+        yinit = Y(:,end); % load final condition of previous recording        
     else % load fixed points from older study
         if strcmp(systemselect, 'solem12')
             unpertfilename = 'b1000fsolem12_fwde_shift0_newpulse';
@@ -252,7 +227,7 @@ for i = 1:length(bcls)
     bcl = bcls(i);
     % print current BCL to screen
     disp(['BCL = ' num2str(bcl) ' ms'])
-    %    ncyc = ncycs(i);
+%    ncyc = ncycs(i);
     
     %    subdiv_per_cyc = bcl/data.dt;
     %    subdiv_per_cyc = bcl;
@@ -282,8 +257,8 @@ for i = 1:length(bcls)
     else
         tstartfp=tic;
         % Find fixed point:
-        [fixedpt, it_hist, ierr, x_hist] = nsoli(yinit,[modelname '_p2pzero'],[nsolitol nsolitol])
-        %        [fixedpt, it_hist, ierr, x_hist] = nsoli(yinit,[modelname '_p2pzero'],[nsolitol nsolitol],[40, 40, .9, 2, 20])
+       [fixedpt, it_hist, ierr, x_hist] = nsoli(yinit,[modelname '_p2pzero'],[nsolitol nsolitol])
+%        [fixedpt, it_hist, ierr, x_hist] = nsoli(yinit,[modelname '_p2pzero'],[nsolitol nsolitol],[40, 40, .9, 2, 20])
         toc(tstartfp);
     end
     %else
@@ -295,7 +270,7 @@ for i = 1:length(bcls)
     
     if ierr == 0
         allfp(:,i) = fixedpt; % fixed point
-    else
+    else 
         % Exit the "for" loop, and print an error message, if ierr ~= 0
         disp(['Fixed-point search failed, ierr = ' num2str(ierr)])
         save fperrdumpfile *
@@ -303,14 +278,15 @@ for i = 1:length(bcls)
         break % exit the for loop
     end
     
-    % from nsoli.m, the stop criterion formula is stop_tol = atol + rtol*fnrm, computed
-    % once based on the inital error. Hence, it doesn't really make sense to
-    % put in an extra check on the error size, though it can be recorded.
     eval(['fperr = ' modelname '_p2pzero(fixedpt);']); % compute fixed-point error
-    fperrnorm = norm(fperr)
-    
+    maxabsfperr = max(abs(fperr))
+    if maxabsfperr > nsolitol
+        disp('Fixed point error exceeds tolerance.')
+        break
+    end
+        
     % Store fixed-point error
-    allfperr(i) = fperrnorm;
+    allfperr(i) = maxabsfperr;
     
     % Next IC = fixed point identified at previous BCL
     yinit = fixedpt;

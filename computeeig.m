@@ -1,25 +1,33 @@
+% Script developed by Anthony and Ryan. Modified by Laura to include
+% epsilon values used in Jacobian computation, use 'nobalance' option, 
+% and to compute and store left eigenvectors. 
+
 clear variables;
 
-Jacobians = 'Jacobians/'; % folder where jacobians are stored
+logepsln = -3; % This is the log10 of the epsilon value used in Jacobian computation. 
 
-Eigenvalues = 'Eigenvalues/'; %folder where eiganvalues will be saved. 
+jacfolder = 'jacobians/'; % folder where jacobians are stored
 
-eval(['load ' Jacobians 'jacfile *']) %Load data from jacobians
+eigfolder = 'eigenvalues/'; %folder where eigenvalues will be saved. 
 
-alleigs = cell(1,length(bcls)); % Store eigenvalues here.
-alleigsabs = cell(1,length(bcls)); % Store eigenvalue magnitude here
-allv= cell(1,length(bcls)); % Store eigenvalues here.
-for i = 1:length(bcls)
-    bcl = bcls(i);
+eval(['load ' jacfolder 'jacfile' num2str(logepsln) ' *']) %Load data from jacobians
+
+alleigs = cell(1,length(selected_bcls_for_fps)); % Store eigenvalues here.
+alleigsabs = cell(1,length(selected_bcls_for_fps)); % Store eigenvalue magnitudes here.
+allv = cell(1,length(selected_bcls_for_fps)); % Store right eigenvectors here.
+allw = cell(1,length(selected_bcls_for_fps)); % Store left eigenvectors here.
+
+for i = 1:length(selected_bcls_for_fps)
+    bcl = selected_bcls_for_fps(i);
     % print current BCL to screen
     disp(['BCL = ' num2str(bcl) ' ms'])
     
-    %eval(['save ' Eigenvalues 'lrdinputs bcl ncyc subdiv_per_cyc'])
+    %eval(['save ' eigfolder 'lrdinputs bcl ncyc subdiv_per_cyc'])
     
-    [allv{i}, eigv] = eig(alljacs{i});
+    [allv{i}, eigv, allw{i}] = eig(alljacs{i},'nobalance');
     alleigs{i}= diag(eigv);
     alleigsabs{i}= abs(alleigs{i});
-    eval(['save ' Eigenvalues 'eigfile *'])
+    eval(['save ' eigfolder 'eigfile' num2str(logepsln) ' *'])
 end
 
 % ploteigs

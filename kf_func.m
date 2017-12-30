@@ -3,7 +3,7 @@
 function kf_func( meas )
 
 for adj_yn = 0:1
-    for bcl_in = [1000, 350, 200, 150]
+    for bcl_in = [200]
         ms = 10; fs = 14; % marker size and font size
 
         statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
