@@ -32,14 +32,14 @@ else
     param = 'def';
 end
 
-markersize = 18; fontsize = 14; % marker size and font size
+markersize = 80; fontsize = 20; linewidth = 2; % marker size, font size, line width
 
-%statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
-statenames = char('$V$','$h$','$m$','$j$','$d$','$f$','$x_r$','$[Ca^{2+}]_{i,t}$','$[Na^+]_i$','$[K^+]_i$','$[Ca^{2+}]_{j,t}$','$[Ca^{2+}]_n$','$x_{s1}$','$b$','$g$','$x_{s2}$','$I_{rel}$');
+statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
+statenames_latex = char('$V$','$h$','$m$','$j$','$d$','$f$','$x_r$','$[Ca^{2+}]_{i,t}$','$[Na^+]_i$','$[K^+]_i$','$[Ca^{2+}]_{j,t}$','$[Ca^{2+}]_n$','$x_{s1}$','$b$','$g$','$x_{s2}$','$I_{rel}$');
 
 jacfolder = ['jacobians/' param '/']; % folder where jacobians are stored
 
-eigfolder = ['eigenvalues/' param '/']; %folder where eigenvalues are stored
+%eigfolder = ['eigenvalues/' param '/']; %folder where eigenvalues are stored
 
 ocfolder = 'ocvalues/'; %folder where obsv and ctrb values will be saved
 
@@ -324,34 +324,34 @@ ctrb_avgd_over_bcls_and_modes_sc = tempcamsc/nbcls;
 
 disp('Unscaled observability for top mode, averaged over bcls:')
 [sortedobsv,obsvsortindex] = sort(abs(obsv_avgd_over_bcls(:,1)),'descend');
-statenames(obsvsortindex,:)
+statenames_latex(obsvsortindex,:)
 obsv_avgd_over_bcls(obsvsortindex)
 
 disp('Unscaled observability, averaged over bcls and modes above threshold:')
 [sortedobsvam,obsvsortindexam] = sort(abs(obsv_avgd_over_bcls_and_modes),'descend');
-statenames(obsvsortindexam,:)
+statenames_latex(obsvsortindexam,:)
 obsv_avgd_over_bcls_and_modes(obsvsortindexam)
 
 disp('Scaled observability for top mode, averaged over bcls and modes above threshold:')
 [sortedobsv_sc,obsvsortindex_sc] = sort(abs(obsv_avgd_over_bcls_sc(:,1)),'descend');
-statenames(obsvsortindex_sc,:)
+statenames_latex(obsvsortindex_sc,:)
 obsv_avgd_over_bcls_sc(obsvsortindex_sc)
 
 disp('Scaled observability, averaged over bcls and modes:')
 [sortedobsvam_sc,obsvsortindexam_sc] = sort(abs(obsv_avgd_over_bcls_and_modes_sc),'descend');
-statenames(obsvsortindexam_sc,:)
+statenames_latex(obsvsortindexam_sc,:)
 obsv_avgd_over_bcls_and_modes_sc(obsvsortindexam_sc)
 
 % Export LaTeX tables
 obsv_avgd_over_bcls_table = cell(numstate,2); 
-obsv_avgd_over_bcls_table(:,1) = cellstr(statenames(obsvsortindex,:)); 
+obsv_avgd_over_bcls_table(:,1) = cellstr(statenames_latex(obsvsortindex,:)); 
 obsv_avgd_over_bcls_table(:,2) = cellstr(num2str(log10(obsv_avgd_over_bcls(obsvsortindex)),'%f'));
 latextableinput.data = obsv_avgd_over_bcls_table;
 latexTable(latextableinput)
 
 
 obsv_avgd_over_bcls_sc_table = cell(numstate,2); 
-obsv_avgd_over_bcls_sc_table(:,1) = cellstr(statenames(obsvsortindex_sc,:)); 
+obsv_avgd_over_bcls_sc_table(:,1) = cellstr(statenames_latex(obsvsortindex_sc,:)); 
 %obsv_avgd_over_bcls_sc_table(:,2) = cellstr(num2str(obsv_avgd_over_bcls_sc(obsvsortindex_sc),'%0.2e'));
 obsv_avgd_over_bcls_sc_table(:,2) = cellstr(num2str(log10(obsv_avgd_over_bcls_sc(obsvsortindex_sc)),'%f'));
 %latex(cell2sym(obsv_avgd_over_bcls_sc_table))
@@ -408,9 +408,12 @@ for ii = 1:nbcls
     end
     for jj = 1:numberoftopmodes%numstate
         figure(hoa)
-        scatter(selected_bcls_for_fps(ii),abs(sortedeigsc(ii,jj)),markersize,eigof.obsvmag_sc{ii}(kc,jj));
+        so=scatter(selected_bcls_for_fps(ii),abs(sortedeigsc(ii,jj)),markersize,eigof.obsvmag_sc{ii}(kc,jj));
+        so.LineWidth = linewidth; 
         figure(hca)
-        scatter(selected_bcls_for_fps(ii),abs(sortedeigsc(ii,jj)),markersize,eigcf.ctrbmag_sc{ii}(kb,jj));
+        sc = scatter(selected_bcls_for_fps(ii),abs(sortedeigsc(ii,jj)),markersize,eigcf.ctrbmag_sc{ii}(kb,jj));
+        set(sc,'linewidth',linewidth)
+        sc.LineWidth = linewidth; 
     end
 end
 
@@ -423,11 +426,17 @@ xlabel('BCL, ms')
 ylabel('Im C*v')
 
 figure(hoa)
+colormap winter
 xlabel('BCL, ms')
 ylabel('Eigenvalue modulus, |\lambda|')
 c = colorbar;
-c.Label.String = '|Cv|';
+%c.Label.String = '|Cv|';
+c.Label.Interpreter = 'latex'; 
+c.Label.String = '$|\cos \phi_{ki}|$';
 title(['Observability magnitude, meas. index = ' num2str(kc)])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[550 243 821 615])
+saveas(gcf,[ocfolder param '/obsveigplot_' param '_measindex_' num2str(kc)])
 
 figure(hcr)
 xlabel('BCL, ms')
@@ -438,21 +447,31 @@ xlabel('BCL, ms')
 ylabel('Im w^T*B')
 
 figure(hca)
+colormap winter
 xlabel('BCL, ms')
 ylabel('Eigenvalue modulus, |\lambda|')
 c = colorbar;
 c.Label.String = '|w^TB|';
 title(['Controllability magnitude, input index = ' num2str(kb)])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[550 243 821 615])
+saveas(gcf,[ocfolder param '/ctrbeigplot_' param '_ctrlindex_' num2str(kb)])
 
 % Plot scaled values
 figure
-plot(selected_bcls_for_fps,obsv_avgd_over_modes_sc(kc,:));
+plot(selected_bcls_for_fps,obsv_avgd_over_modes_sc(kc,:),'linewidth',linewidth);
 xlabel('BCL, ms')
 ylabel('|cos(\phi)| averaged over |\lambda| > 0.9')
 title(['Avg. obsv. magnitude, meas. index = ' num2str(kc)])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[433 243 938 615])
+saveas(gcf,[ocfolder param '/obsvavgplot_' param '_measindex_' num2str(kc)])
 
 figure
-plot(selected_bcls_for_fps,mean(obsv_avgd_over_modes_sc));
+plot(selected_bcls_for_fps,mean(obsv_avgd_over_modes_sc),'linewidth',linewidth);
 xlabel('BCL, ms')
 ylabel('|cos(\phi)| averaged over |\lambda| > 0.9')
 title(['Avg. obsv. magnitude over all measurements'])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[433 243 938 615])
+saveas(gcf,[ocfolder param '/obsvavgplot_' param])

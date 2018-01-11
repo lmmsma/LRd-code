@@ -1,4 +1,3 @@
-3
 
 %LMM: perform pacedown protocol on LRD model
 clear variables;

@@ -5,11 +5,16 @@
 
 clear variables;
 
-rng('default'); % reset random number generator
+rng(1, 'twister'); % reset random number generator
 
-ms = 10; fs = 14; % marker size and font size
+markersize = 80; fontsize = 14; linewidth = 2; % marker size, font size, line width
+shorttitleflag = 1; % set to 1 to reduce title length for presentation figures
 
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
+statenames_latex = char('$V$','$h$','$m$','$j$','$d$','$f$','$x_r$','$[Ca^{2+}]_{i,t}$','$[Na^+]_i$','$[K^+]_i$','$[Ca^{2+}]_{j,t}$','$[Ca^{2+}]_n$','$x_{s1}$','$b$','$g$','$x_{s2}$','$I_{rel}$');
+% plot symbols
+symbols = char('ko-','bs-','rp-','m*-','g^-','cv-','yh-');
+
 selected_logepsln = -5; % Base 10 log of step size used in Jacobian computation
 
 kf_folder = 'kalman/';
@@ -36,7 +41,7 @@ nbcls = length(selected_bcls_for_fps);
 % What is a reasonable amount of time? How quickly do we want 
 % the noise-free errors to converge? 
 %simtime = 60000; % ms
-simtime = 30000; % ms
+simtime = 20000; % ms
 
 noisecycles = round(simtime/60); % number of cycles for which noise will be generated. 
 % Pick a number greater than the number of cycles implied by simtime. 
@@ -67,6 +72,12 @@ display(['Measurement: ' statenames(measurementindex, :)])
 % measurementindex = 1; % Select an integer from 1 to numstate. 
 % This is the index of the state variable that is measured. 
 
+% Reconstruction indices: these are the indices of the variables that
+% are judged to be the most important to reconstruct. These variables will
+% be highlighted in the plots. 
+%reconstructionindices = [8 11 12]; % Calcium concentration variables are 8, 11, 12
+reconstructionindices = [8]; 
+
 controlindex = 1;  % Select an integer from 1 to numstate.  
 % This is the index of the state variable that is controlled. 
 % It should not affect KF design, unless process noise matrix 
@@ -74,34 +85,38 @@ controlindex = 1;  % Select an integer from 1 to numstate.
 
 % Initial condition
 %x0 = 0.01*ones(numstate,1); 
+%Warning!!! Sizes probably don't make sense 
+%(variables have different ranges, also xhat0 = 0.01*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
+
+% perturbations of size 1 prob. not in linear regime)
 % This should be replaced with a random IC (e.g., xhat system should have 
 % random IC) after the xhat system is separated out. 
-% Choose a random initial condition for "ground truth" system; 
+% Choose a random initial condition for "ground truth" (=gt) system; 
 % according to standard KF theory this should be a random variable. 
 %xgtlin0 = 0.001*randn(numstate,1); % Random IC. 
-xgtlin0 = 0.001*Smatinv*randn(numstate,1); % Random IC, but try to make proportional to state variable amplitudes.  
-%Warning!!! Sizes probably don't make sense 
-%(variables have different ranges, also 
-% perturbations of size 1 prob. not in linear regime)
+%xgtlin0 = 0.001*Smatinv*randn(numstate,1); % Random IC, but try to make proportional to state variable amplitudes.  
+xgtlin0 = 0.01*Smatinv*randn(numstate,1); % Random IC, but try to make proportional to state variable amplitudes.  
 
 % Initialize state estimate (doesn't have to be a random variable) 
+%xhat0 = xgtlin0; % Can match ICs to investigate the effect of noise-based
+%error in the absence of IC error
 %xhat0 = 0.01*ones(numstate,1); 
 %xhat0 = 0.01*Smatinv*ones(numstate,1); % Try to make proportional to state variable amplitudes
+%xhat0 = 0.005*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
 %xhat0 = 0.01*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
-xhat0 = 0.005*Smatinv*randn(numstate,1); % Try to make proportional to state variable amplitudes
-
+xhat0 = zeros(numstate,1); % If we don't know anything about the true IC, just initialize estiamtor at zero
 
 % Pre-generate unit-variance noise signals so that different Q/R 
-% ratios can betested with the same shape of w and v trajectories
-
-%rng('default'); % Set random number seed to default for now, to make it 
-% easier to compare across different runs? This didn't work the way I
-% expected. 
+% ratios can be tested with the same shape of w and v trajectories
 
 %wu = randn(1,noisecycles); 
 %wu = randn(numstate,noisecycles); 
+%vu = randn(1,noisecycles); 
+% Later, I attempted to choose different sizes for the noise signals based
+% on the amplitudes of the corresponding variables. The noise size is reduced later via
+% Qn and Rn, when w and v are computed. 
 wu = Smatinv*randn(numstate,noisecycles); % Try to make input noise proportional to state variable amplitudes
-vu = randn(1,noisecycles); 
+vu = Smatinv(measurementindex,measurementindex)*randn(1,noisecycles); 
 
 % Units of noise signals will depend on which variables are 
 % measured and/or receive process noise. 
@@ -109,11 +124,12 @@ vu = randn(1,noisecycles);
 %Qnscalar = 0.1; % process noise factor 
 %Qnscalar = 0.01; % process noise factor 
 %Qnscalar = 0.000001; % process noise factor 
-Qnscalar = 0.0000001; % process noise factor 
 %Qnscalar = 100; % process noise factor 
+Qnscalar = 0.0000001; % process noise factor 
+%Qnscalar = 0.00000001; % process noise factor 
 
+%Rn = 100*Qnscalar;% meas. noise covariance (units of mV^2 if V is the measurement?)
 Rn = 0.001*Qnscalar;% meas. noise covariance (units of mV^2 if V is the measurement?)
-%Rn = .01*Qnscalar;% meas. noise covariance (units of mV^2 if V is the measurement?)
 
 Qn = Qnscalar*eye(numstate); % process noise covariance 
 
@@ -173,7 +189,7 @@ sys = ss(jaccd, [B(:,controlindex) Bw], C(measurementindex,:), [0 zeros(1,size(B
 
 % Compute KF gain (= Lkf) just for unscaled system for now
 %[kest,Lkf,P] = kalman(sys,Qn,Rn,0);
-[kest,Lkf,P] = kalman(sys,Qn,Rn,zeros(size(w,1),1));
+[kest,Lkf,P,M,Z] = kalman(sys,Qn,Rn,zeros(size(w,1),1));
 %[kest,Lkf,P] = kalman(sys,Qn,Rn,zeros(size(w,1),1),'delayed'); % excluding the ‘delayed’ seemed to have no impact on Lkf in the one test I ran on 11/19. 
 
 % % For debugging purposes, can check computation of Lkf. 
@@ -190,16 +206,16 @@ cleig = eig(jaccd-Lkf*C(measurementindex,:));
 % Display open and closed-loop eigenvalues
 [oleig cleig];
 figure;
-t= {[param ': Eigenvalue mags for OL and CL'], ['BCL =' num2str(bcl) 'ms, Meas= ' statenames(measurementindex, :)]};
+t= {[param ': Eigenvalue mags for OL and CL'], ['BCL =' num2str(bcl) 'ms, Meas= ' statenames_latex(measurementindex, :)]};
 plot(1:17, [abs(oleig) abs(cleig)])
 legend('Open Loop', 'Closed Loop');
 grid on
-title(t);
+title(t,'Interpreter','latex');
 %set(gca,'XTick',1:17,'XTickLabel',statenames)
 %xlabel('Measurement');
 xlabel('Eigenvalue index');
 ylabel('\lambda Magnitude');
-%saveas(gcf,[kf_folder 'kfeigs_' param '_' statenames(measurementindex,:) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfeigs_' param '_' strtrim(statenames(measurementindex,:)) '_' num2str(bcl)])
 %saveas(gcf,[kf_folder 'kfeigs_' param '_' statenames(measurementindex, :) '_' num2str(bcl) '.jpeg'])
 
 
@@ -239,7 +255,7 @@ for ii = 1:nsteps-1
 end
 ygtlin_noiseless = C(measurementindex,:)*xgtlinall_noiseless; % measurement without noise
 
-% Compute "ground truth" linear system state, without noise
+% Compute "ground truth" linear system state, with noise
 xgtlinall = zeros(numstate,nsteps);
 xgtlinall(:,1) = xgtlin0; 
 for ii = 1:nsteps-1
@@ -248,7 +264,7 @@ end
 ygtlin = C(measurementindex,:)*xgtlinall + v(ii); % measurement with noise
 
 % Compute pseudo-KF (no noise) state estimate, open loop
-% This is almost the same as xgtlin_noiseless, but with a non-random IC
+% This is almost the same as xgtlin_noiseless, but with the option of a non-random IC
 xhatolall_noiseless = zeros(numstate,nsteps);
 xhatolall_noiseless(:,1) = xhat0; 
 for ii = 1:nsteps-1
@@ -262,7 +278,8 @@ for ii = 1:nsteps-1
     xkfall_noiseless(:,ii+1) = jaccd*xkfall_noiseless(:,ii) + Lkf*(ygtlin_noiseless(ii)-C(measurementindex,:)*xkfall_noiseless(:,ii)); 
 end
 
-% Compute KF state estimate, closed loop
+% Compute KF state estimate, closed loop. xkfall(:, ii+1) = xhat(ii+1|ii),
+% in other words, it is the a-priori predictor-corrector error.  
 xkfall = zeros(numstate,nsteps);
 xkfall(:,1) = xhat0; 
 for ii = 1:nsteps-1
@@ -304,7 +321,7 @@ plot(bclselect*(1:nsteps)/1000,eol_noiseless,'.-')
 grid 
 ylabel('Error w/o fbk')
 axis([0 simtime/1000 -ylim ylim])
-title({[param ': Simulated estimation errors, with no noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
+title({[param ': Simulated estimation errors, with no noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]},'Interpreter', 'latex');
 subplot(2,1,2)
 hold 
 plot(bclselect*(1:nsteps)/1000,ekf_noiseless,'.-')
@@ -313,7 +330,7 @@ xlabel('time (sec)')
 ylabel('Error w/ fbk')
 axis([0 simtime/1000 -ylim ylim])
 
-%saveas(gcf,[kf_folder 'kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
 %saveas(gcf,[kf_folder 'kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl) '.jpeg'])
 
 % Plot absolute errors with noise
@@ -323,7 +340,7 @@ hold
 plot(bclselect*(1:nsteps)/1000,eol,'.-')
 grid 
 ylabel('Error w/o fbk')
-title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
+title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex') ;
 axis([0 simtime/1000 -ylimn ylimn])
 subplot(2,1,2)
 hold
@@ -333,7 +350,7 @@ ylabel('Error w/ fbk')
 xlabel('time (sec)') 
 axis([0 simtime/1000 -ylimn ylimn])
 
-%saveas(gcf,[kf_folder 'kfplot_noise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_noise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
 %saveas(gcf,[kf_folder 'kfplot_noise_' param '_' statenames(measurementindex) '_' num2str(bcl) '.jpeg'])
 
 % Plot normalized noiseless errors 
@@ -344,7 +361,7 @@ plot(bclselect*(1:nsteps)/1000,eol_noiseless./eolmax,'.-')
 grid 
 ylabel('Normalized err. w/o fbk')
 axis([0 simtime/1000 -1.1 1.1])
-title({[param ': Simulated estimation errors, with no noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
+title({[param ': Simulated estimation errors, with no noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
 subplot(2,1,2)
 hold 
 plot(bclselect*(1:nsteps)/1000,ekf_noiseless./ekfmax,'.-')
@@ -353,7 +370,7 @@ xlabel('time (sec)')
 ylabel('Normalized err. w/ fbk')
 axis([0 simtime/1000 -1.1 1.1])
 
-%saveas(gcf,[kf_folder 'kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_wonoise_normalized_' param '_' statenames(measurementindex) '_' num2str(bcl)])
 %saveas(gcf,[kf_folder 'kfplot_wonoise_' param '_' statenames(measurementindex) '_' num2str(bcl) '.jpeg'])
 
 % Plot normalized errors, with noise
@@ -363,7 +380,7 @@ hold
 plot(bclselect*(1:nsteps)/1000,eol./eolmaxn,'.-')
 grid 
 ylabel('Normalized err. w/o fbk')
-title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]});
+title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
 axis([0 simtime/1000 -1.1 1.1])
 subplot(2,1,2)
 hold
@@ -373,12 +390,179 @@ ylabel('Normalized err. w/ fbk')
 xlabel('time (sec)') 
 axis([0 simtime/1000 -1.1 1.1])
 
-%saveas(gcf,[kf_folder 'kfplot_noise_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_noise_normalized_' param '_' statenames(measurementindex) '_' num2str(bcl)])
 %saveas(gcf,[kf_folder 'kfplot_noise_' param '_' statenames(measurementindex) '_' num2str(bcl) '.jpeg'])
 
-% Compute error covariance
-ekfcovnorm = norm(cov(ekf))
+% Plot absolute errors of variables targeted for "reconstruction" 
+figure
+subplot(2,1,1)
+hold
+for k = 1:length(reconstructionindices) 
+plot(bclselect*(1:nsteps)/1000,eol(reconstructionindices(k),:),symbols(k,:), 'Linewidth', linewidth)
+end
+grid 
+%ylabel('Error w/o fbk')
+ylabel('Error w/o fbk, mmol / L') % Use if concentrations were chosen
+title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
+leg = legend(statenames_latex(reconstructionindices,:)); 
+set(leg,'Interpreter', 'latex') 
+%axis([0 simtime/1000 -ylimn ylimn])
+subplot(2,1,2)
+hold
+for k = 1:length(reconstructionindices) 
+plot(bclselect*(1:nsteps)/1000,ekf(reconstructionindices(k),:),symbols(k,:), 'Linewidth', linewidth)
+end
+grid 
+%ylabel('Error w/ fbk')
+ylabel('Error w/ fbk, mmol / L') % Use if concentrations were chosen
+xlabel('time (sec)') 
+leg = legend(statenames_latex(reconstructionindices,:)); 
+set(leg,'Interpreter', 'latex') 
+%axis([0 simtime/1000 -ylimn ylimn])
+saveas(gcf,[kf_folder param '/kfplot_targetedvariables_' param '_' statenames(measurementindex) '_' num2str(bcl)])
 
-%save save kfwv1to10 *
+
+% Plot absolute CL errors of variables targeted for "reconstruction" 
+figure
+if shorttitleflag
+    title({['Sim. estim. errors, w/ noise, meas. = ' strtrim(statenames_latex(measurementindex,:)) ', BCL = ' num2str(bcl) 'ms'], ' '}, 'Interpreter', 'latex');
+else
+    title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
+end
+hold
+for k = 1:length(reconstructionindices) 
+plot(bclselect*(1:nsteps)/1000,ekf(reconstructionindices(k),:),symbols(k,:), 'Linewidth', linewidth)
+end
+grid 
+%ylabel('Error w/ fbk')
+ylabel('Estimation error, mmol / L') % Use if concentrations were chosen
+xlabel('time (sec)') 
+leg = legend(statenames_latex(reconstructionindices,:)); 
+set(leg,'Interpreter', 'latex') 
+set(gca,'fontsize',fontsize)
+set(gca,'linewidth',linewidth)
+%axis([0 simtime/1000 -ylimn ylimn])
+%saveas(gcf,[kf_folder param '/kfplot_targetedvariables_cl_only_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_targetedvariables_cl_only_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+
+% Plot normalized CL errors of variables targeted for "reconstruction" 
+figure
+if shorttitleflag
+    title({['Sim. estim. errors, w/ noise, meas. = ' strtrim(statenames_latex(measurementindex,:)) ', BCL = ' num2str(bcl) 'ms'], ' '}, 'Interpreter', 'latex');
+else
+    title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
+end
+hold
+for k = 1:length(reconstructionindices) 
+plot(bclselect*(1:nsteps)/1000,ekf(reconstructionindices(k),:)./ekfmaxn(reconstructionindices(k)),symbols(k,:), 'Linewidth', linewidth)
+end
+grid 
+ylabel('Normalized est. err.') 
+xlabel('time (sec)') 
+leg = legend(statenames_latex(reconstructionindices,:)); 
+set(leg,'Interpreter', 'latex') 
+set(gca,'fontsize',fontsize)
+set(gca,'linewidth',linewidth)
+%axis([0 simtime/1000 -ylimn ylimn])
+%saveas(gcf,[kf_folder param '/kfplot_targetedvariables_cl_only_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+saveas(gcf,[kf_folder param '/kfplot_targetedvariables_normederr_cl_only_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+
+% Plot normalized errors, with noise, and highlight first targeted variable
+figure
+if shorttitleflag
+    title({['Sim. estim. errors, w/ noise, meas. = ' strtrim(statenames_latex(measurementindex,:)) ', BCL = ' num2str(bcl) 'ms'], ' '}, 'Interpreter', 'latex');
+else
+    title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
+end
+hold
+plot(bclselect*(1:nsteps)/1000,ekf./ekfmaxn,'.-')
+grid 
+ylabel('Normalized est. err.')
+xlabel('time (sec)') 
+axis([0 simtime/1000 -1.1 1.1])
+for k = 1:1
+p=plot(bclselect*(1:nsteps)/1000,ekf(reconstructionindices(k),:)./ekfmaxn(reconstructionindices(k)),symbols(k,:), 'Linewidth', 2*linewidth); 
+leg = legend(p,statenames_latex(reconstructionindices(k),:)); 
+end
+grid 
+set(leg,'Interpreter', 'latex') 
+set(gca,'fontsize',fontsize)
+set(gca,'linewidth',linewidth)
+saveas(gcf,[kf_folder param '/kfplot_normederr_overlay_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+
+% Can use next portion if no Lkf was found. Compute eol first, then compute
+% associated OL norms and save command.
+if 0
+    % Plot absolute CL errors of variables targeted for "reconstruction" 
+figure
+if shorttitleflag
+    title({['Sim. estim. errors, w/ noise, meas. = ' strtrim(statenames_latex(measurementindex,:)) ', BCL = ' num2str(bcl) 'ms'], ' '}, 'Interpreter', 'latex');
+else
+    title({[param ': Simulated estimation errors, with noise, meas. = ' strtrim(statenames_latex(measurementindex,:))], ['BCL = ' num2str(bcl) 'ms, Q = ' num2str(Qnscalar), ', R = ' num2str(Rn)]}, 'Interpreter', 'latex');
+end
+
+hold
+for k = 1:length(reconstructionindices) 
+plot(bclselect*(1:nsteps)/1000,eol(reconstructionindices(k),:),symbols(k,:), 'Linewidth', linewidth)
+end
+grid 
+ylabel('Estimation error, mmol / L') % Use if concentrations were chosen
+xlabel('time (sec)') 
+leg = legend(statenames_latex(reconstructionindices,:)); 
+set(leg,'Interpreter', 'latex') 
+set(gca,'fontsize',fontsize)
+set(gca,'linewidth',linewidth)
+saveas(gcf,[kf_folder param '/kfplot_targetedvariables_ol_only_' param '_' statenames(measurementindex) '_' num2str(bcl)])
+end
+
+Lkfnorm = norm(Lkf) % size of gain is related to strength of feedback
+Pnorm = norm(P) % steady-state a-priori cov norm
+Znorm = norm(Z) % steady-state a-posteriori cov norm
+
+maxabscleig = max(abs(cleig)) % size of least stable eigenvalue
+
+% Compute error covariance norms
+ekfcov = cov(ekf'); 
+size(ekfcov) % Make sure this is nxn, where n is the number of states. 
+% The presence or absence of the transpose operator matters. Cov assumes
+% that columns are variables and rows are observations. 
+eolcovnorm_noiseless = norm(cov(eol_noiseless'));
+ekfcovnorm_noiseless = norm(cov(ekf_noiseless'));
+eolcovnorm = norm(cov(eol'));
+ekfcovnorm = norm(ekfcov);
+
+% Check a value against manual computation
+ekfvarcheck = sum((ekf(reconstructionindices(1),:)-mean(ekf(reconstructionindices(1),:))).^2)/(nsteps-1)
+ekfcov(reconstructionindices(1),reconstructionindices(1)) 
+
+% Exclude transient period from covariances? 
+% No obvious fixed time when this should be; maybe first ten cycles? 
+postransindex = 11; 
+eolcovnorm_noiseless_ss = norm(cov(eol_noiseless(:,postransindex:end)'));
+ekfcovnorm_noiseless_ss = norm(cov(ekf_noiseless(:,postransindex:end)'));
+eolcovnorm_ss = norm(cov(eol(:,postransindex:end)'));
+ekfcovnorm_ss = norm(cov(ekf(:,postransindex:end)'));
+
+% Compute scaled error covariance norms
+eolcovnorm_noiseless_scaled = norm(cov((Smat*eol_noiseless)'));
+ekfcovnorm_noiseless_scaled = norm(cov((Smat*ekf_noiseless)'));
+eolcovnorm_scaled = norm(cov((Smat*eol)'));
+ekfcovnorm_scaled = norm(cov((Smat*ekf)'));
+
+eolcovnorm_noiseless_ss_scaled = norm(cov((Smat*eol_noiseless(:,postransindex:end))'));
+ekfcovnorm_noiseless_ss_scaled = norm(cov((Smat*ekf_noiseless(:,postransindex:end))'));
+eolcovnorm_ss_scaled = norm(cov((Smat*eol(:,postransindex:end))'));
+ekfcovnorm_ss_scaled = norm(cov((Smat*ekf(:,postransindex:end))'));
+
+
+eolcovnorm 
+ekfcovnorm 
+eolcovnorm_scaled 
+ekfcovnorm_scaled 
+eolcovnorm_ss_scaled
+ekfcovnorm_ss_scaled
+
+%save kfwv1to10 *
+eval(['save ' kf_folder param '/kalmanfile_measind_' num2str(measurementindex) '_bcl_' num2str(bcl) ' *'])
 
 

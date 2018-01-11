@@ -19,21 +19,21 @@ eigfolder = ['eigenvalues/' param];
 eval(['load ' eigfolder '/eigfile' num2str(logepsln) ' *'])
 %% Plotting Magnitude of Each Eigenvalue
 figure
-title(['Eigenvalue moduli for default parameters, epsilon = 10^{' num2str(logepsln) '}']);
+title(['Eigenvalue moduli for ' param ' parameters, epsilon = 10^{' num2str(logepsln) '}']);
 ylabel('|\lambda|');
 xlabel('BCL (ms)');
 grid on;
 hold on
-for i=1:length(bcls)
+for i=1:length(selected_bcls_for_fps)
     for j=1:17
-        scatter(bcls(i), alleigsabs{i}(j), '*');
+        scatter(selected_bcls_for_fps(i), alleigsabs{i}(j), 'b*');
     end
 end
 hold off;
 
 %% Plotting Real vs Imaginary Part for each Eigenvalue
 figure
-title('\lambda for default parameters');
+title(['\lambda for ' param ' parameters']);
 ylabel('Im(\lambda)');
 xlabel('Real(\lambda)');
 grid on;
