@@ -8,8 +8,8 @@ clear variables;
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
 statenames_latex = char('$V$','$h$','$m$','$j$','$d$','$f$','$x_r$','$[Ca^{2+}]_{i,t}$','$[Na^+]_i$','$[K^+]_i$','$[Ca^{2+}]_{j,t}$','$[Ca^{2+}]_n$','$x_{s1}$','$b$','$g$','$x_{s2}$','$I_{rel}$');
 
-%folder = ['lrddata'];
-folder = uigetdir; 
+folder = ['lrddata'];
+%folder = uigetdir; 
 
 load([folder '\pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
 datapacedown = data;

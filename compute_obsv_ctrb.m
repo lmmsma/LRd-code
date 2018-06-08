@@ -337,11 +337,12 @@ disp('Scaled observability for top mode, averaged over bcls and modes above thre
 statenames_latex(obsvsortindex_sc,:)
 obsv_avgd_over_bcls_sc(obsvsortindex_sc)
 
-disp('Scaled observability, averaged over bcls and modes:')
+disp('Scaled observability, averaged over bcls and modes above threshold:')
 [sortedobsvam_sc,obsvsortindexam_sc] = sort(abs(obsv_avgd_over_bcls_and_modes_sc),'descend');
 statenames_latex(obsvsortindexam_sc,:)
 obsv_avgd_over_bcls_and_modes_sc(obsvsortindexam_sc)
 
+disp('Unscaled observability, averaged over bcls and modes above threshold:')
 % Export LaTeX tables
 obsv_avgd_over_bcls_table = cell(numstate,2); 
 obsv_avgd_over_bcls_table(:,1) = cellstr(statenames_latex(obsvsortindex,:)); 
@@ -349,7 +350,7 @@ obsv_avgd_over_bcls_table(:,2) = cellstr(num2str(log10(obsv_avgd_over_bcls(obsvs
 latextableinput.data = obsv_avgd_over_bcls_table;
 latexTable(latextableinput)
 
-
+disp('Scaled observability, averaged over bcls and modes above threshold:')
 obsv_avgd_over_bcls_sc_table = cell(numstate,2); 
 obsv_avgd_over_bcls_sc_table(:,1) = cellstr(statenames_latex(obsvsortindex_sc,:)); 
 %obsv_avgd_over_bcls_sc_table(:,2) = cellstr(num2str(obsv_avgd_over_bcls_sc(obsvsortindex_sc),'%0.2e'));
@@ -359,6 +360,44 @@ obsv_avgd_over_bcls_sc_table(:,2) = cellstr(num2str(log10(obsv_avgd_over_bcls_sc
 % wanted it to, so I'm using a custom script, latexTable.m, instead: 
 latextableinput.data = obsv_avgd_over_bcls_sc_table;
 latexTable(latextableinput)
+
+% Controllability
+disp('Unscaled controllability for top mode, averaged over bcls:')
+[sortedctrb,ctrbsortindex] = sort(abs(ctrb_avgd_over_bcls(:,1)),'descend');
+statenames_latex(ctrbsortindex,:)
+ctrb_avgd_over_bcls(ctrbsortindex)
+
+disp('Unscaled controllability, averaged over bcls and modes above threshold:')
+[sortedctrbam,ctrbsortindexam] = sort(abs(ctrb_avgd_over_bcls_and_modes),'descend');
+statenames_latex(ctrbsortindexam,:)
+ctrb_avgd_over_bcls_and_modes(ctrbsortindexam)
+
+disp('Scaled controllability for top mode, averaged over bcls and modes above threshold:')
+[sortedctrb_sc,ctrbsortindex_sc] = sort(abs(ctrb_avgd_over_bcls_sc(:,1)),'descend');
+statenames_latex(ctrbsortindex_sc,:)
+ctrb_avgd_over_bcls_sc(ctrbsortindex_sc)
+
+disp('Scaled controllability, averaged over bcls and modes above threshold:')
+[sortedctrbam_sc,ctrbsortindexam_sc] = sort(abs(ctrb_avgd_over_bcls_and_modes_sc),'descend');
+statenames_latex(ctrbsortindexam_sc,:)
+ctrb_avgd_over_bcls_and_modes_sc(ctrbsortindexam_sc)
+
+disp('Unscaled controllabilty, averaged over bcls and modes above threshold:')
+% Export LaTeX tables
+ctrb_avgd_over_bcls_table = cell(numstate,2); 
+ctrb_avgd_over_bcls_table(:,1) = cellstr(statenames_latex(ctrbsortindex,:)); 
+ctrb_avgd_over_bcls_table(:,2) = cellstr(num2str(log10(ctrb_avgd_over_bcls(ctrbsortindex)),'%f'));
+latextableinput.data = ctrb_avgd_over_bcls_table;
+latexTable(latextableinput)
+
+disp('Scaled controllabilty, averaged over bcls and modes above threshold:')
+ctrb_avgd_over_bcls_sc_table = cell(numstate,2); 
+ctrb_avgd_over_bcls_sc_table(:,1) = cellstr(statenames_latex(ctrbsortindex_sc,:)); 
+ctrb_avgd_over_bcls_sc_table(:,2) = cellstr(num2str(log10(ctrb_avgd_over_bcls_sc(ctrbsortindex_sc)),'%f'));
+latextableinput.data = ctrb_avgd_over_bcls_sc_table;
+latexTable(latextableinput)
+
+
 
 %clear paramflag bcl B C Cs eigfolder f fs i j jacfolder k kb kc ks ms Smat Smatinv umax varamp;
 if ~debugflag
@@ -475,3 +514,23 @@ title(['Avg. obsv. magnitude over all measurements'])
 set(gca,'fontsize',fontsize)
 set(gcf,'Position',[433 243 938 615])
 saveas(gcf,[ocfolder param '/obsvavgplot_' param])
+
+% Plot scaled values (ctrb) 
+figure
+plot(selected_bcls_for_fps,ctrb_avgd_over_modes_sc(kb,:),'linewidth',linewidth);
+xlabel('BCL, ms')
+ylabel('|cos(\theta)| averaged over |\lambda| > 0.9')
+title(['Avg. ctrb. magnitude, control index = ' num2str(kb)])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[433 243 938 615])
+saveas(gcf,[ocfolder param '/ctrbavgplot_' param '_ctrlindex_' num2str(kb)])
+
+figure
+plot(selected_bcls_for_fps,mean(ctrb_avgd_over_modes_sc),'linewidth',linewidth);
+xlabel('BCL, ms')
+ylabel('|cos(\theta)| averaged over |\lambda| > 0.9')
+title(['Avg. ctrb. magnitude over all control inputs'])
+set(gca,'fontsize',fontsize)
+set(gcf,'Position',[433 243 938 615])
+saveas(gcf,[ocfolder param '/ctrbavgplot_' param])
+

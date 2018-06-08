@@ -17,14 +17,16 @@ else
 end
 
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
-%bcls = [1000 90];
-%bcls = [400: -50:400 390: -10: 70]; %Reduced Pacedown
-bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
-%bcls = [50:-1:40]; %cycle lengths in ms
+%%bcls = [1000 900];
+%%bcls = [400: -50:400 390: -10: 70]; %Reduced Pacedown
+%bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
+%%bcls = [50:-1:40]; %cycle lengths in ms
+bcls = 900; 
 
 % Load initial condition, if there happens to be a preferred one for the 
 % starting bcl value 
-if bcls(1) == 1000
+%if bcls(1) == 1000
+if bcls(1) == 1000 | bcls(1) == 900 % variant for Niels' drift paper: start at 900ms but use 1000ms IC
     % Filenames and label settings based on fixed point type:
     if strcmp(systemselect, 'solem12')
         unpertfilename = 'b1000fsolem12_fwde_shift0_newpulse';
@@ -74,7 +76,8 @@ end
 % For now, try fixed-time pacedown (whole number of cycles closest to
 % 30sec)
 
-pacetimeperbcl = 30*1000; % ms; apply fixed-BCL stimuli for this number of ms
+%pacetimeperbcl = 30*1000; % ms; apply fixed-BCL stimuli for this number of ms
+pacetimeperbcl = 600*1000; % ms; apply fixed-BCL stimuli for this number of ms; for Niels' drift paper
 
 ncycs = round(pacetimeperbcl./bcls); % approx number of cycles per pacetime interval
 % (pacing will be applied for the whole number of bcls that is closest to 
