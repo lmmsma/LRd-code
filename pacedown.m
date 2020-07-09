@@ -19,9 +19,9 @@ end
 % BCL steps loosely based on Koller/Riccio/Gilmour dynamic protocol:
 %%bcls = [1000 900];
 %%bcls = [400: -50:400 390: -10: 70]; %Reduced Pacedown
-%bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
+bcls = [1000:-50:400 390:-10:70];% 69:-1:50]; %full pacedown; cycle lengths in ms
 %%bcls = [50:-1:40]; %cycle lengths in ms
-bcls = 900; 
+%bcls = 900; 
 
 % Load initial condition, if there happens to be a preferred one for the 
 % starting bcl value 
@@ -76,8 +76,8 @@ end
 % For now, try fixed-time pacedown (whole number of cycles closest to
 % 30sec)
 
-%pacetimeperbcl = 30*1000; % ms; apply fixed-BCL stimuli for this number of ms
-pacetimeperbcl = 600*1000; % ms; apply fixed-BCL stimuli for this number of ms; for Niels' drift paper
+pacetimeperbcl = 30*1000; % ms; apply fixed-BCL stimuli for this number of ms
+%pacetimeperbcl = 600*1000; % ms; apply fixed-BCL stimuli for this number of ms; for Niels' drift paper
 
 ncycs = round(pacetimeperbcl./bcls); % approx number of cycles per pacetime interval
 % (pacing will be applied for the whole number of bcls that is closest to 
@@ -109,4 +109,4 @@ pacedownstoptimer = toc(pacedownstarttimer)
 
 % To produce a time-series plot of the entire pacedown (V vs. t), 
 % uncomment the following line: 
-plotpacedowntimeseries 
+% plotpacedowntimeseries 

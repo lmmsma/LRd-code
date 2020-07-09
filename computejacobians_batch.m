@@ -7,9 +7,12 @@ clear variables;
 %epsilons = [10^-6 10^-5 10^-4]; % These values seemed to be the 
 % best ones based on preliminary tests of 2-norms of Jacobian and eigenvalue
 % differences, for A&R's vlaues. 
-epsilons = [10^-7 10^-3]; %  
+%epsilons = [10^-7 10^-3]; %  
+epsilons = [10^-7 10^-6 10^-5 10^-4 10^-3]; %  
 
+cjstart = tic;
 for j=1:length(epsilons)
     computejacobians(epsilons(j)); 
 end
+toc(cjstart)
 

@@ -5,15 +5,20 @@
 clear variables; 
 
 %Reads in files of located fixed points
-%sourcefolder = 'lrddata_fromfixedpointsearch/';%This folder is the source for fixed points
-sourcefolder = 'C:/Users/laura/''Google Drive''/''REU 2017''/Data/''Fixed Points''/''Default Parameters- Ryan''/';%This folder is the source for fixed points
-%fixedpointfolder = 'fixedpoints/';%Save compiled fixed points here
-fixedpointfolder = 'fixedpoints_fromaandr/';%Save compiled fixed points here
+sourcefolder = 'lrddata_fromfixedpointsearch/';%This folder is the source for fixed points
+%sourcefolder = 'C:/Users/laura/''Google Drive''/''REU 2017''/Data/''Fixed
+%Points''/''Default Parameters- Ryan''/';%This folder is the source for
+%fixed points, but these are wrong (swapped parameter set) and the double
+%quote format no longer works in Matlab 2018
+fixedpointfolder = 'fixedpoints/';%Save compiled fixed points here
+%fixedpointfolder = 'fixedpoints_fromaandr/';%Save compiled fixed points here
 modelinputfolder = 'lrddata/'; % this folder name is currently hardcoded into
 % lrd_p2p.m. The M-file will look in this folder for the lrdinputs files
 % specified later in this script. 
 
-selected_bcls_for_fps = [1000:-50:500 490:-10:70];%Vector of bcls
+%selected_bcls_for_fps = [1000:-50:500 490:-10:70];%Vector of bcls
+% Change to match available FPs for adjusted data set: 
+selected_bcls_for_fps = [1000:-50:400 390:-10:70];%Vector of bcls for Anthony's adjusted parameters
 % There are more fixed points than the ones listed in selected_bcls...
 % Just choose BCLs where Jacobians are desired. They should be available
 % at least every 10 ms, starting at 810 ms.  

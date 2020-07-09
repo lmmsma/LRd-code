@@ -5,12 +5,27 @@
 
 clear variables;
 
+% I can't find a way to change LaTeX-interpreted labels back to the default
+% font (Helvetica), so I can try changing everything else to the LaTeX
+% font by setting the LaTeX interpreter as default.
+set(0,'defaultTextInterpreter','latex');
+set(groot, 'defaultAxesTickLabelInterpreter','latex');
+set(groot, 'defaultLegendInterpreter','latex');
+set(0,'defaultLineLineWidth', 2)
+
 plottsflagV = 0; % if nonzero, produce a V vs time timeseries plot for each BCL
 plottsflagCa = 0; %if nonzero, produce a Ca vs Time timeseries plot for each BCL
 
+equalaxesflag = 0; % Set to nonzero for equal scaling on plot axes
+fs = 20; % fontsize
+if equalaxesflag
+    fs = 24; % fontsize
+end
+markersize = 10; 
 %folder = ['lrddata/pacedownKstim1000_50_pace30000ms_samp0p5ms/'];
 %folder = ['Stored_Runs/Default-400_70/'];
-folder = ['lrddata/'];
+%folder = ['lrddata/'];
+folder = ['lrddata_pacedown_def/'];
 
 % Load settings recorded from pacedown simulation run
 load([folder 'pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
@@ -32,7 +47,8 @@ end
 %bcls = [50:-1:43]; %cycle lengths in ms
 nbcls = length(bcls);
 %ncyc = 4; %number of cycles to run (starting from fixed point for that BCL)
-drepol_threshold = -40; %depol and repol threshold, mV
+%drepol_threshold = -40; %depol and repol threshold, mV
+drepol_threshold = -75; %depol and repol threshold, mV
 interpflag = 1; % if nonzero,use linear interpolation to improve estimates
 %of depol and repol times
 
@@ -158,22 +174,62 @@ end
 h=figure;
 hold on;
 for i = 1:nbcls
-    plot(bcls(i),allapd{i},'b*')
+    plot(bcls(i),allapd{i},'b.', 'MarkerSize', markersize);
 end
-xlabel(['BCL, ms'])
+%xlabel(['BCL, ms'])
+xlabel(['$T$, ms'])
 ylabel(['APD, ms'])
-title('APD vs. BCL')
+%title('APD vs. BCL: Default Parameters')
+if equalaxesflag
 axis equal
-grid
+set(gcf,'units','normalized','outerposition',[0.01 0.35 0.8 0.48])
+%https://www.mathworks.com/matlabcentral/answers/352024-programmatically-performing-expand-axes-to-fill-figure
+InSet = get(gca, 'TightInset');
+set(gca, 'Position', [InSet(1)+0.05, InSet(2), 0.92-InSet(1)-InSet(3), 1-InSet(2)-InSet(4)]);
+end
+text(700,100, 'default ','fontsize',fs)
+xticks([0 200 400 600 800 1000])
+axis([0 1050 30 180])
+set(gca,'FontSize',fs)
+%grid
+saveas(gcf,'apdvsbcldef')
+fig = gcf;
+fig.PaperPositionMode = 'auto';
+fig_pos = fig.PaperPosition;
+fig.PaperSize = [fig_pos(3) fig_pos(4)];
+%print('apdvsbcldef','-depsc','-r0')
+%print('apdvsbcldef','-dpdf','-r0')
+print(fig,'apdvsbcldef','-dpdf')
 
 % Plot APDs vs. DIs 
 h2=figure;
 hold on;
 for i = 1:nbcls
-    plot(alldi{i},allapd{i}(2:end),'b*')
+    plot(alldi{i},allapd{i}(2:end),'b.', 'MarkerSize', markersize);
 end
 xlabel(['DI, ms'])
 ylabel(['APD, ms'])
-title('APD vs. DI')
+%title('APD vs. DI: Default Parameters')
+if equalaxesflag
 axis equal
-grid
+set(gcf,'units','normalized','outerposition',[0.01 0.35 0.8 0.48])
+%https://www.mathworks.com/matlabcentral/answers/352024-programmatically-performing-expand-axes-to-fill-figure
+InSet = get(gca, 'TightInset');
+set(gca, 'Position', [InSet(1)+0.05, InSet(2), 0.92-InSet(1)-InSet(3), 1-InSet(2)-InSet(4)]);
+end
+text(700,100, 'default ','fontsize',fs)
+xticks([0 200 400 600 800 1000])
+axis([-50 1000 30 180])
+set(gca,'FontSize',fs)
+%grid
+saveas(gcf,'apdvsdidef')
+fig = gcf;
+fig.PaperPositionMode = 'auto';
+fig_pos = fig.PaperPosition;
+fig.PaperSize = [fig_pos(3) fig_pos(4)];
+%print('apdvsdidef','-depsc','-r0')
+%print('apdvsdidef','-dpdf','-r0')
+print(fig,'apdvsdidef','-dpdf')
+
+
+

@@ -3,12 +3,22 @@
 % (small values indicate that system is close to steady state) 
 
 clear variables;
+fs = 20; % fontsize
+lw = 2; % linewidth for thresholds
+lwV = 1; % linewidth for V plots
+set(0,'defaultaxesfontsize',fs); 
+% I can't find a way to change LaTeX-interpreted labels back to the default
+% font (Helvetica), so I can try changing everything else to the LaTeX
+% font, cmr12. 
+%set(0,'defaultAxesFontName', 'cmr12')
+%set(0,'defaultTextFontName', 'cmr12')
 
 %ms = 10; fs = 14; % marker size and font size
 statenames = char('V','H','m','J','d','f','xr','ca_T','na_i','k_i','jsr_T','nsr','xs','B','G','xs2','Rel');
 statenames_latex = char('$V$','$h$','$m$','$j$','$d$','$f$','$x_r$','$[Ca^{2+}]_{i,t}$','$[Na^+]_i$','$[K^+]_i$','$[Ca^{2+}]_{j,t}$','$[Ca^{2+}]_n$','$x_{s1}$','$b$','$g$','$x_{s2}$','$I_{rel}$');
 
-folder = ['lrddata'];
+%folder = ['lrddata'];
+folder = 'lrddata_pacedown_def'; 
 %folder = uigetdir; 
 
 load([folder '\pacedownsettings']) % contains data bcls ncycs pacetimeperbcl
